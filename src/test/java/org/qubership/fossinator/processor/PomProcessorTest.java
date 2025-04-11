@@ -10,7 +10,7 @@ import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class DependenciesProcessorTest {
+class PomProcessorTest {
 
     @AfterEach
     void tearDown() {
@@ -224,7 +224,7 @@ class DependenciesProcessorTest {
                                 <version>2.2.2</version>
                             </dependency>
                        </dependencies>
-                   </dependencyManagement>
+                    </dependencyManagement>
                 </project>
                 """;
 
@@ -252,7 +252,7 @@ class DependenciesProcessorTest {
 
     private void generalTest(String input, String expected) throws Exception {
 
-        DependenciesProcessor processor = new DependenciesProcessor();
+        PomProcessor processor = new PomProcessor();
 
         String actual = processor.processPom(input);
 

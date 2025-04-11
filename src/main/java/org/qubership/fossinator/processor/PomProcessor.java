@@ -3,17 +3,18 @@ package org.qubership.fossinator.processor;
 import com.ximpleware.*;
 import org.qubership.fossinator.config.ConfigReader;
 import org.qubership.fossinator.config.Dependency;
+import org.qubership.fossinator.processor.model.Replacement;
+import org.qubership.fossinator.processor.model.Replacements;
+import org.qubership.fossinator.processor.model.TagPosition;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
 
-public class DependenciesProcessor implements Processor {
+public class PomProcessor implements Processor {
     private final static String GROUP_ID_TAG = "groupId";
     private final static String ARTIFACT_ID_TAG = "artifactId";
     private final static String VERSION_TAG = "version";
@@ -47,18 +48,18 @@ public class DependenciesProcessor implements Processor {
     }
 
     String processPom(String pomXml) throws Exception{
-        List<Replacement> replacementsToApply = getReplacementsToApply(pomXml);
+        Replacements replacementsToApply = getDependencyReplacementsToApply(pomXml);
 
         if (!replacementsToApply.isEmpty()) {
             System.out.println("apply");
-            replacementsToApply.sort((a, b) -> Long.compare(b.offset, a.offset));
+            replacementsToApply.sort((a, b) -> Long.compare(b.offset(), a.offset()));
 
             StringBuilder newPomXml = new StringBuilder(pomXml);
             for (Replacement r : replacementsToApply) {
                 newPomXml.replace(
-                        (int) r.offset,
-                        (int) r.offset + r.length,
-                        r.newValue
+                        (int) r.offset(),
+                        (int) r.offset() + r.length(),
+                        r.newValue()
                 );
             }
 
@@ -67,17 +68,27 @@ public class DependenciesProcessor implements Processor {
         return pomXml;
     }
 
-    List<Replacement> getReplacementsToApply(String pomXml) throws Exception {
+    Replacements getDependencyReplacementsToApply(String pomXml) throws Exception {
         VTDGen vg = new VTDGen();
         vg.setDoc(pomXml.getBytes());
         vg.parse(true);
 
         VTDNav vn = vg.getNav();
+
+        Replacements replacementsToApply = new Replacements();
+
         AutoPilot ap = new AutoPilot(vn);
         ap.selectXPath("/project/dependencies/dependency");
+        processDependencies(replacementsToApply, ap, vn);
 
-        List<Replacement> replacementsToApply = new ArrayList<>();
+        ap = new AutoPilot(vn);
+        ap.selectXPath("/project/dependencyManagement/dependencies/dependency");
+        processDependencies(replacementsToApply, ap, vn);
 
+        return replacementsToApply;
+    }
+
+    private void processDependencies(Replacements replacements, AutoPilot ap, VTDNav vn) throws Exception {
         while (ap.evalXPath() != -1) {
             vn.push();
 
@@ -88,37 +99,18 @@ public class DependenciesProcessor implements Processor {
                 Dependency depToReplace = ConfigReader.getConfig().getDependency(currentGroupId, currentArtifactId);
                 if (depToReplace != null) {
                     TagPosition groupIdPos = getTagPosition(vn, GROUP_ID_TAG);
-                    if (groupIdPos != null) {
-                        replacementsToApply.add(new Replacement(
-                                groupIdPos.offset,
-                                groupIdPos.length,
-                                depToReplace.getNewGroupId()
-                        ));
-                    }
+                    replacements.add(groupIdPos, depToReplace.getNewGroupId());
 
                     TagPosition artifactIdPos = getTagPosition(vn, ARTIFACT_ID_TAG);
-                    if (artifactIdPos != null) {
-                        replacementsToApply.add(new Replacement(
-                                artifactIdPos.offset,
-                                artifactIdPos.length,
-                                depToReplace.getNewArtifactId()
-                        ));
-                    }
+                    replacements.add(artifactIdPos, depToReplace.getNewArtifactId());
 
                     TagPosition versionPos = getTagPosition(vn, VERSION_TAG);
-                    if (versionPos != null) {
-                        replacementsToApply.add(new Replacement(
-                                versionPos.offset,
-                                versionPos.length,
-                                depToReplace.getNewVersion()
-                        ));
-                    }
+                    replacements.add(versionPos, depToReplace.getNewVersion());
                 }
             }
 
             vn.pop();
         }
-        return replacementsToApply;
     }
 
     String getTagValue(VTDNav vn, String tagName) throws Exception {
@@ -156,8 +148,4 @@ public class DependenciesProcessor implements Processor {
             vn.pop();
         }
     }
-
-    record TagPosition(long offset, int length) { }
-
-    record Replacement(long offset, int length, String newValue) { }
 }
