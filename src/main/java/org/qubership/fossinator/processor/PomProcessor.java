@@ -1,6 +1,7 @@
 package org.qubership.fossinator.processor;
 
 import com.ximpleware.*;
+import lombok.extern.slf4j.Slf4j;
 import org.qubership.fossinator.config.ConfigReader;
 import org.qubership.fossinator.config.Dependency;
 import org.qubership.fossinator.processor.model.Replacement;
@@ -14,25 +15,30 @@ import java.nio.file.Paths;
 import java.util.Objects;
 import java.util.stream.Stream;
 
+@Slf4j
 public class PomProcessor implements Processor {
     private final static String GROUP_ID_TAG = "groupId";
     private final static String ARTIFACT_ID_TAG = "artifactId";
     private final static String VERSION_TAG = "version";
 
+    private final static String POM_FILE_NAME = "pom.xml";
+
     @Override
     public void process(String dir) {
-        Path rootDir = Paths.get(dir);
+        Path dirPath = Paths.get(dir);
 
-        try (Stream<Path> s = Files.walk(rootDir)) {
-            s.filter(path -> path.toString().endsWith("pom.xml")).forEach(this::updateDependencies);
+        try (Stream<Path> s = Files.walk(dirPath)) {
+            s.filter(path -> path.toString()
+                    .endsWith(POM_FILE_NAME))
+                    .forEach(this::processPomFile);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            log.error("Error while processing files in dir {}", dir);
         }
     }
 
-    public void updateDependencies(Path filePath) {
+    public void processPomFile(Path filePath) {
         try {
-            System.out.println("updateDependencies. filePath = " + filePath.toString());
+            log.info("updateDependencies. filePath = {}", filePath.toString());
 
             byte[] pomContent = Files.readAllBytes(filePath);
             String pomXml = new String(pomContent);
@@ -43,7 +49,7 @@ public class PomProcessor implements Processor {
                 Files.write(filePath, newPomXml.getBytes());
             }
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            log.error("Error while processing pom.xml {}", filePath.toString());
         }
     }
 
@@ -69,26 +75,28 @@ public class PomProcessor implements Processor {
     }
 
     Replacements getDependencyReplacementsToApply(String pomXml) throws Exception {
-        VTDGen vg = new VTDGen();
-        vg.setDoc(pomXml.getBytes());
-        vg.parse(true);
-
-        VTDNav vn = vg.getNav();
+        VTDNav vn = getVtdNav(pomXml);
 
         Replacements replacementsToApply = new Replacements();
 
-        AutoPilot ap = new AutoPilot(vn);
-        ap.selectXPath("/project/dependencies/dependency");
-        processDependencies(replacementsToApply, ap, vn);
-
-        ap = new AutoPilot(vn);
-        ap.selectXPath("/project/dependencyManagement/dependencies/dependency");
-        processDependencies(replacementsToApply, ap, vn);
+        processDependenciesXpath(replacementsToApply, vn, "/project/dependencies/dependency");
+        processDependenciesXpath(replacementsToApply, vn, "/project/dependencyManagement/dependencies/dependency");
 
         return replacementsToApply;
     }
 
-    private void processDependencies(Replacements replacements, AutoPilot ap, VTDNav vn) throws Exception {
+    VTDNav getVtdNav(String pomXml) throws ParseException {
+        VTDGen vg = new VTDGen();
+        vg.setDoc(pomXml.getBytes());
+        vg.parse(true);
+
+        return vg.getNav();
+    }
+
+    void processDependenciesXpath(Replacements replacements, VTDNav vn, String xpath) throws Exception {
+        AutoPilot ap = new AutoPilot(vn);
+        ap.selectXPath(xpath);
+
         while (ap.evalXPath() != -1) {
             vn.push();
 

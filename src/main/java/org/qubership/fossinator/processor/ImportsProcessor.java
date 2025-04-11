@@ -22,37 +22,33 @@ public class ImportsProcessor implements Processor {
         Path dirPath = Paths.get(dir);
 
         try (Stream<Path> paths = Files.walk(dirPath)) {
-            List<Path> javaFiles = paths
-                    .filter(Files::isRegularFile)
+            paths.filter(Files::isRegularFile)
                     .filter(p -> p.toString().endsWith(".java"))
-                    .toList();
-
-            for (Path javaFile : javaFiles) {
-                processFilePath(javaFile);
-            }
-
+                    .forEach(this::processFilePath);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            log.error("Error while processing files in dir {}", dir);
         }
     }
 
-    void processFilePath(Path filePath) throws IOException {
-        CompilationUnit compilationUnit;
+    void processFilePath(Path filePath) {
         try {
-            compilationUnit = StaticJavaParser.parse(filePath);
-            LexicalPreservingPrinter.setup(compilationUnit);
-        } catch (Exception e) {
+            CompilationUnit compilationUnit = getCompilationUnit(filePath);
+
+            boolean updated = processFile(compilationUnit);
+
+            if (updated) {
+                saveChanges(filePath, compilationUnit);
+            }
+        } catch (IOException e) {
             log.warn("Cannot parse file: {}", filePath);
-            return;
         }
+    }
 
-        boolean updated = processFile(compilationUnit);
+    CompilationUnit getCompilationUnit(Path filePath) throws IOException {
+        CompilationUnit compilationUnit = StaticJavaParser.parse(filePath);
+        LexicalPreservingPrinter.setup(compilationUnit);
 
-        if (updated) {
-            String updatedCode = LexicalPreservingPrinter.print(compilationUnit);
-            Files.write(filePath, updatedCode.getBytes());
-            System.out.println("Updated: " + filePath);
-        }
+        return compilationUnit;
     }
 
     boolean processFile(CompilationUnit cu) {
@@ -76,5 +72,14 @@ public class ImportsProcessor implements Processor {
     ImportDeclaration createNewImport(ImportDeclaration imp, Import impToReplace) {
         String newImportStr = imp.getNameAsString().replace(impToReplace.getOldName(), impToReplace.getNewName());
         return new ImportDeclaration(newImportStr, imp.isStatic(), imp.isAsterisk());
+    }
+
+    void saveChanges(Path filePath, CompilationUnit compilationUnit) {
+        try {
+            String updatedCode = LexicalPreservingPrinter.print(compilationUnit);
+            Files.write(filePath, updatedCode.getBytes());
+        } catch (IOException e) {
+            log.error("Cannot write file: {}", filePath);
+        }
     }
 }

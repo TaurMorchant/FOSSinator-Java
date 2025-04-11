@@ -14,7 +14,6 @@ public class TransformCommand implements Runnable {
     @CommandLine.Option(names = "--dir") String dir;
 
     public void run() {
-        log.info("Dir is: {}", dir);
         if (dir == null) {
             dir = "C:\\git\\Test Resources For Fossinator\\dbaas-old";
         }
