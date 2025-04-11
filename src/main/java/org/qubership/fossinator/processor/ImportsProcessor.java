@@ -4,6 +4,7 @@ import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.ImportDeclaration;
 import com.github.javaparser.printer.lexicalpreservation.LexicalPreservingPrinter;
+import lombok.extern.slf4j.Slf4j;
 import org.qubership.fossinator.config.ConfigReader;
 import org.qubership.fossinator.config.Import;
 
@@ -14,6 +15,7 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.stream.Stream;
 
+@Slf4j
 public class ImportsProcessor implements Processor {
 
     public void process(String dir) {
@@ -34,26 +36,26 @@ public class ImportsProcessor implements Processor {
         }
     }
 
-    private void processFilePath(Path filePath) throws IOException {
-        CompilationUnit cu;
+    void processFilePath(Path filePath) throws IOException {
+        CompilationUnit compilationUnit;
         try {
-            cu = StaticJavaParser.parse(filePath);
-            LexicalPreservingPrinter.setup(cu);
+            compilationUnit = StaticJavaParser.parse(filePath);
+            LexicalPreservingPrinter.setup(compilationUnit);
         } catch (Exception e) {
-            System.err.println("Cannot parse file: " + filePath);
+            log.warn("Cannot parse file: {}", filePath);
             return;
         }
 
-        boolean updated = processFile(cu);
+        boolean updated = processFile(compilationUnit);
 
         if (updated) {
-            String updatedCode = LexicalPreservingPrinter.print(cu);
+            String updatedCode = LexicalPreservingPrinter.print(compilationUnit);
             Files.write(filePath, updatedCode.getBytes());
             System.out.println("Updated: " + filePath);
         }
     }
 
-    private static boolean processFile(CompilationUnit cu) {
+    boolean processFile(CompilationUnit cu) {
         boolean updated = false;
 
         List<ImportDeclaration> imports = cu.getImports();
@@ -71,7 +73,7 @@ public class ImportsProcessor implements Processor {
         return updated;
     }
 
-    private static ImportDeclaration createNewImport(ImportDeclaration imp, Import impToReplace) {
+    ImportDeclaration createNewImport(ImportDeclaration imp, Import impToReplace) {
         String newImportStr = imp.getNameAsString().replace(impToReplace.getOldName(), impToReplace.getNewName());
         return new ImportDeclaration(newImportStr, imp.isStatic(), imp.isAsterisk());
     }

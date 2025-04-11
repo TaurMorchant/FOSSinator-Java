@@ -2,13 +2,14 @@ package org.qubership.fossinator.config;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
+import java.util.Collections;
 import java.util.List;
 
 @Getter @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @ToString
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Config {
@@ -31,6 +32,10 @@ public class Config {
                 }
             }
             return null;
+        }
+
+        public List<Import> getImportsToReplace() {
+            return importsToReplace != null ? importsToReplace : Collections.emptyList();
         }
     }
 }

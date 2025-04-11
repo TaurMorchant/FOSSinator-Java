@@ -8,14 +8,17 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 public class ConfigReader {
     private static Config config;
 
-    public static Config readConfig() {
+    public static void readConfig() {
         ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory());
         try {
             config = objectMapper.readValue(new File("config.yaml"), Config.class);
-            return config;
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public static void setConfig(Config config) {
+        ConfigReader.config = config;
     }
 
     public static Config.JavaConfig getConfig() {

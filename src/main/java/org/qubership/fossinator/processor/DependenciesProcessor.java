@@ -10,6 +10,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 public class DependenciesProcessor implements Processor {
@@ -35,29 +36,38 @@ public class DependenciesProcessor implements Processor {
             byte[] pomContent = Files.readAllBytes(filePath);
             String pomXml = new String(pomContent);
 
-            List<Replacement> replacementsToApply = getReplacementsToApply(pomXml);
+            String newPomXml = processPom(pomXml);
 
-            if (!replacementsToApply.isEmpty()) {
-                System.out.println("apply");
-                replacementsToApply.sort((a, b) -> Long.compare(b.offset, a.offset));
-
-                StringBuilder newPomXml = new StringBuilder(pomXml);
-                for (Replacement r : replacementsToApply) {
-                    newPomXml.replace(
-                            (int) r.offset,
-                            (int) r.offset + r.length,
-                            r.newValue
-                    );
-                }
-
-                Files.write(filePath, newPomXml.toString().getBytes());
+            if (!Objects.equals(pomXml, newPomXml)) {
+                Files.write(filePath, newPomXml.getBytes());
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    private static List<Replacement> getReplacementsToApply(String pomXml) throws Exception {
+    String processPom(String pomXml) throws Exception{
+        List<Replacement> replacementsToApply = getReplacementsToApply(pomXml);
+
+        if (!replacementsToApply.isEmpty()) {
+            System.out.println("apply");
+            replacementsToApply.sort((a, b) -> Long.compare(b.offset, a.offset));
+
+            StringBuilder newPomXml = new StringBuilder(pomXml);
+            for (Replacement r : replacementsToApply) {
+                newPomXml.replace(
+                        (int) r.offset,
+                        (int) r.offset + r.length,
+                        r.newValue
+                );
+            }
+
+            return newPomXml.toString();
+        }
+        return pomXml;
+    }
+
+    List<Replacement> getReplacementsToApply(String pomXml) throws Exception {
         VTDGen vg = new VTDGen();
         vg.setDoc(pomXml.getBytes());
         vg.parse(true);
@@ -111,7 +121,7 @@ public class DependenciesProcessor implements Processor {
         return replacementsToApply;
     }
 
-    private static String getTagValue(VTDNav vn, String tagName) throws Exception {
+    String getTagValue(VTDNav vn, String tagName) throws Exception {
         vn.push();
         AutoPilot ap = new AutoPilot(vn);
         ap.selectXPath(tagName);
@@ -129,7 +139,7 @@ public class DependenciesProcessor implements Processor {
         }
     }
 
-    private static TagPosition getTagPosition(VTDNav vn, String tagName) throws Exception {
+    TagPosition getTagPosition(VTDNav vn, String tagName) throws Exception {
         vn.push();
         AutoPilot ap = new AutoPilot(vn);
         ap.selectXPath(tagName);
@@ -147,7 +157,7 @@ public class DependenciesProcessor implements Processor {
         }
     }
 
-    private record TagPosition(long offset, int length) { }
+    record TagPosition(long offset, int length) { }
 
-    private record Replacement(long offset, int length, String newValue) { }
+    record Replacement(long offset, int length, String newValue) { }
 }
