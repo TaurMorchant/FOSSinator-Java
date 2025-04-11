@@ -127,6 +127,46 @@ class PomProcessorTest {
     }
 
     @Test
+    void processPom_hasDependenciesToChange_artifactWildcard() throws Exception {
+        Config.JavaConfig javaConfig = new Config.JavaConfig();
+        javaConfig.setDependenciesToReplace(new ArrayList<>() {{
+            add(Dependency.builder()
+                    .oldGroupId("org.foo")
+                    .oldArtifactId("*")
+                    .newGroupId("org.bar")
+                    .newVersion("6.6.6")
+                    .build());
+        }});
+        Config config = new Config(javaConfig);
+
+        ConfigReader.setConfig(config);
+
+        String input = """
+                <project xmlns="http://maven.apache.org/POM/4.0.0">
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.foo</groupId>
+                            <artifactId>artifact1</artifactId>
+                        </dependency>
+                   </dependencies>
+                </project>
+                """;
+
+        String expected = """
+                <project xmlns="http://maven.apache.org/POM/4.0.0">
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.bar</groupId>
+                            <artifactId>artifact1</artifactId>
+                        </dependency>
+                   </dependencies>
+                </project>
+                """;
+
+        generalTest(input, expected);
+    }
+
+    @Test
     void processPom_hasDependenciesToChange_severalDependencies() throws Exception {
         Config.JavaConfig javaConfig = new Config.JavaConfig();
         javaConfig.setDependenciesToReplace(new ArrayList<>() {{

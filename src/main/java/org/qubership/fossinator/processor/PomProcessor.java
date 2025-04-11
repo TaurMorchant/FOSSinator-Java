@@ -57,7 +57,6 @@ public class PomProcessor implements Processor {
         Replacements replacementsToApply = getDependencyReplacementsToApply(pomXml);
 
         if (!replacementsToApply.isEmpty()) {
-            System.out.println("apply");
             replacementsToApply.sort((a, b) -> Long.compare(b.offset(), a.offset()));
 
             StringBuilder newPomXml = new StringBuilder(pomXml);
@@ -110,7 +109,9 @@ public class PomProcessor implements Processor {
                     replacements.add(groupIdPos, depToReplace.getNewGroupId());
 
                     TagPosition artifactIdPos = getTagPosition(vn, ARTIFACT_ID_TAG);
-                    replacements.add(artifactIdPos, depToReplace.getNewArtifactId());
+                    if (!depToReplace.isAnyArtifact()) {
+                        replacements.add(artifactIdPos, depToReplace.getNewArtifactId());
+                    }
 
                     TagPosition versionPos = getTagPosition(vn, VERSION_TAG);
                     replacements.add(versionPos, depToReplace.getNewVersion());

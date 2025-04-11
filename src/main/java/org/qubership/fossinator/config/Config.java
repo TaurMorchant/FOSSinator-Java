@@ -27,7 +27,7 @@ public class Config {
 
         public Dependency getDependency(String groupId, String artifactId) {
             for (Dependency dep : dependenciesToReplace) {
-                if (groupId.equals(dep.getOldGroupId()) && artifactId.equals(dep.getOldArtifactId())) {
+                if (dep.isGroupIdMatch(groupId) && dep.isArtifactIdMatch(artifactId)) {
                     return dep;
                 }
             }
