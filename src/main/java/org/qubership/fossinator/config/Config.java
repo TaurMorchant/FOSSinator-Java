@@ -22,6 +22,9 @@ public class Config {
         @JsonProperty("imports-to-replace")
         private List<Import> importsToReplace;
 
+        @JsonProperty("imports-to-replace-by-pattern")
+        private List<ImportPattern> importsToReplaceByPattern;
+
         @JsonProperty("dependencies-to-replace")
         private List<Dependency> dependenciesToReplace;
 

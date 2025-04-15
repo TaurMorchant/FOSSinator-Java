@@ -27,6 +27,10 @@ public class PomProcessor implements Processor {
     public void process(String dir) {
         Path dirPath = Paths.get(dir);
 
+        if (ConfigReader.getConfig().getDependenciesToReplace().isEmpty()) {
+            return;
+        }
+
         try (Stream<Path> s = Files.walk(dirPath)) {
             s.filter(path -> path.toString()
                     .endsWith(POM_FILE_NAME))

@@ -24,9 +24,10 @@ public class TransformCommand implements Runnable {
 
         ServiceLoader<Processor> processors = ServiceLoader.load(Processor.class);
         for (Processor processor : processors) {
+            long start = System.currentTimeMillis();
             log.info("----- Execute processor {}. [START]", processor.getClass().getSimpleName());
             processor.process(dir);
-            log.info("----- Execute processor {}. [END]", processor.getClass().getSimpleName());
+            log.info("----- Execute processor {}. [END]. Time spent: {}", processor.getClass().getSimpleName(), System.currentTimeMillis() - start);
         }
     }
 

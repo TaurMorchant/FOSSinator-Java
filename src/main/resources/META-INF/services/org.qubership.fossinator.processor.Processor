@@ -1,2 +1,3 @@
 org.qubership.fossinator.processor.ImportsProcessor
 org.qubership.fossinator.processor.PomProcessor
+org.qubership.fossinator.processor.ImportPatternsProcessor

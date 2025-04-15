@@ -6,7 +6,9 @@ import com.github.javaparser.ast.ImportDeclaration;
 import com.github.javaparser.printer.lexicalpreservation.LexicalPreservingPrinter;
 import lombok.extern.slf4j.Slf4j;
 import org.qubership.fossinator.config.ConfigReader;
-import org.qubership.fossinator.config.Import;
+import org.qubership.fossinator.config.ImportPattern;
+import org.qubership.fossinator.index.ClassIndex;
+import org.qubership.fossinator.index.ClassIndexReader;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -16,12 +18,12 @@ import java.util.List;
 import java.util.stream.Stream;
 
 @Slf4j
-public class ImportsProcessor implements Processor {
-
+public class ImportPatternsProcessor implements Processor {
+    @Override
     public void process(String dir) {
         Path dirPath = Paths.get(dir);
 
-        if (ConfigReader.getConfig().getImportsToReplace().isEmpty()) {
+        if (ConfigReader.getConfig().getImportsToReplaceByPattern().isEmpty()) {
             return;
         }
 
@@ -62,19 +64,29 @@ public class ImportsProcessor implements Processor {
         for (int i = 0; i < imports.size(); i++) {
             ImportDeclaration imp = imports.get(i);
 
-            for (Import impToReplace : ConfigReader.getConfig().getImportsToReplace()) {
-                if (imp.getNameAsString().startsWith(impToReplace.getOldName())) {
-                    ImportDeclaration newImport = createNewImport(imp, impToReplace);
-                    imports.set(i, newImport);
-                    updated = true;
-                }
+            ClassIndex index = ClassIndexReader.getIndex();
+            ImportPattern matchedPattern = getMatchedPattern(imp);
+            if (matchedPattern != null && index.contains(imp.getNameAsString())) {
+                ImportDeclaration newImport = createNewImport(imp, matchedPattern);
+                imports.set(i, newImport);
+                updated = true;
             }
         }
         return updated;
     }
 
-    ImportDeclaration createNewImport(ImportDeclaration imp, Import impToReplace) {
-        String newImportStr = imp.getNameAsString().replace(impToReplace.getOldName(), impToReplace.getNewName());
+    ImportPattern getMatchedPattern(ImportDeclaration imp) {
+        for (ImportPattern impPattern : ConfigReader.getConfig().getImportsToReplaceByPattern()) {
+            if (imp.getNameAsString().startsWith(impPattern.getOldPackageName())) {
+                return impPattern;
+            }
+        }
+        return null;
+    }
+
+
+    ImportDeclaration createNewImport(ImportDeclaration imp, ImportPattern impPattern) {
+        String newImportStr = imp.getNameAsString().replace(impPattern.getOldPackageName(), impPattern.getNewPackageName());
         return new ImportDeclaration(newImportStr, imp.isStatic(), imp.isAsterisk());
     }
 
