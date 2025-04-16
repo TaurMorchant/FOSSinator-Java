@@ -1,13 +1,13 @@
 package org.qubership.fossinator.index;
 
-import lombok.Getter;
+import lombok.Setter;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 
 public class ClassIndexReader {
-    @Getter
+    @Setter
     private static ClassIndex index;
 
     public static void readIndex() throws IOException {
@@ -19,5 +19,9 @@ public class ClassIndexReader {
                 index.add(line);
             }
         }
+    }
+
+    public static ClassIndex getIndex() {
+        return index == null ? new ClassIndex() : index;
     }
 }
