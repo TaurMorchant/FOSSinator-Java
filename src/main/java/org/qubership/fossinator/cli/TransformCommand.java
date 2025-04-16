@@ -1,4 +1,4 @@
-package org.qubership.fossinator;
+package org.qubership.fossinator.cli;
 
 import com.github.javaparser.ParserConfiguration;
 import com.github.javaparser.StaticJavaParser;
@@ -9,10 +9,13 @@ import picocli.CommandLine;
 import java.util.ServiceLoader;
 
 @Slf4j
-@CommandLine.Command(name = "transform", mixinStandardHelpOptions = true)
-public class TransformCommand implements Runnable {
-    @CommandLine.Option(names = "--dir") String dir;
+@CommandLine.Command(name = "transform", description = "Performs automatic migration steps")
+class TransformCommand implements Runnable {
 
+    @CommandLine.Option(names = {"-d", "--dir"}, description = "Dir to process")
+    private String dir;
+
+    @Override
     public void run() {
         if (dir == null) {
             dir = "C:\\git\\Test Resources For Fossinator\\dbaas-old";
@@ -30,5 +33,4 @@ public class TransformCommand implements Runnable {
             log.info("----- Execute processor {}. [END]. Time spent: {}", processor.getClass().getSimpleName(), System.currentTimeMillis() - start);
         }
     }
-
 }

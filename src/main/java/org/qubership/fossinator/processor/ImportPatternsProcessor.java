@@ -7,8 +7,8 @@ import com.github.javaparser.printer.lexicalpreservation.LexicalPreservingPrinte
 import lombok.extern.slf4j.Slf4j;
 import org.qubership.fossinator.config.ConfigReader;
 import org.qubership.fossinator.config.ImportPattern;
-import org.qubership.fossinator.index.ClassIndex;
-import org.qubership.fossinator.index.ClassIndexReader;
+import org.qubership.fossinator.index.Index;
+import org.qubership.fossinator.index.ClassesIndex;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -64,7 +64,7 @@ public class ImportPatternsProcessor implements Processor {
         for (int i = 0; i < imports.size(); i++) {
             ImportDeclaration imp = imports.get(i);
 
-            ClassIndex index = ClassIndexReader.getIndex();
+            Index index = ClassesIndex.getIndex();
             ImportPattern matchedPattern = getMatchedPattern(imp);
             if (matchedPattern != null) {
                 String importToSearchInIndex = imp.isStatic() ? getClassNameOfStaticImport(imp) : imp.getNameAsString();

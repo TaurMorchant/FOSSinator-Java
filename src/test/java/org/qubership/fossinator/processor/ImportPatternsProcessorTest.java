@@ -8,8 +8,8 @@ import org.junit.jupiter.api.Test;
 import org.qubership.fossinator.config.Config;
 import org.qubership.fossinator.config.ConfigReader;
 import org.qubership.fossinator.config.ImportPattern;
-import org.qubership.fossinator.index.ClassIndex;
-import org.qubership.fossinator.index.ClassIndexReader;
+import org.qubership.fossinator.index.Index;
+import org.qubership.fossinator.index.ClassesIndex;
 
 import java.util.ArrayList;
 
@@ -20,7 +20,7 @@ class ImportPatternsProcessorTest {
     @AfterEach
     void tearDown() {
         ConfigReader.setConfig(null);
-        ClassIndexReader.setIndex(null);
+        ClassesIndex.setIndex(null);
     }
 
     @Test
@@ -132,10 +132,10 @@ class ImportPatternsProcessorTest {
         Config config = new Config(javaConfig);
         ConfigReader.setConfig(config);
 
-        ClassIndex index = new ClassIndex() {{
+        Index index = new Index() {{
             add("com.company.package1.Service");
         }};
-        ClassIndexReader.setIndex(index);
+        ClassesIndex.setIndex(index);
 
         String input = """
                 package test;
@@ -169,10 +169,10 @@ class ImportPatternsProcessorTest {
         Config config = new Config(javaConfig);
         ConfigReader.setConfig(config);
 
-        ClassIndex index = new ClassIndex() {{
+        Index index = new Index() {{
             add("com.company.package1");
         }};
-        ClassIndexReader.setIndex(index);
+        ClassesIndex.setIndex(index);
 
         String input = """
                 package test;
@@ -228,10 +228,10 @@ class ImportPatternsProcessorTest {
         Config config = new Config(javaConfig);
         ConfigReader.setConfig(config);
 
-        ClassIndex index = new ClassIndex() {{
+        Index index = new Index() {{
             add("com.company.package1.Service");
         }};
-        ClassIndexReader.setIndex(index);
+        ClassesIndex.setIndex(index);
 
         String input = """
                 package test;
@@ -265,10 +265,10 @@ class ImportPatternsProcessorTest {
         Config config = new Config(javaConfig);
         ConfigReader.setConfig(config);
 
-        ClassIndex index = new ClassIndex() {{
+        Index index = new Index() {{
             add("com.company.package1.Service");
         }};
-        ClassIndexReader.setIndex(index);
+        ClassesIndex.setIndex(index);
 
         String input = """
                 package test;
