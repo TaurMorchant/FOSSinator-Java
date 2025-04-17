@@ -42,7 +42,7 @@ public class PomProcessor implements Processor {
 
     public void processPomFile(Path filePath) {
         try {
-            log.info("updateDependencies. filePath = {}", filePath.toString());
+            log.debug("Process pom.xml : {}", filePath.toString());
 
             byte[] pomContent = Files.readAllBytes(filePath);
             String pomXml = new String(pomContent);

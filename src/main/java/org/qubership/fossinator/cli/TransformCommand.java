@@ -10,16 +10,10 @@ import java.util.ServiceLoader;
 
 @Slf4j
 @CommandLine.Command(name = "transform", description = "Performs automatic migration steps")
-class TransformCommand implements Runnable {
-
-    @CommandLine.Option(names = {"-d", "--dir"}, description = "Dir to process")
-    private String dir;
+class TransformCommand extends AbstractCommand {
 
     @Override
-    public void run() {
-        if (dir == null) {
-            dir = ".";
-        }
+    protected void runCommand() {
         StaticJavaParser.setConfiguration(
                 new ParserConfiguration()
                         .setLanguageLevel(ParserConfiguration.LanguageLevel.JAVA_21)
@@ -30,7 +24,7 @@ class TransformCommand implements Runnable {
             long start = System.currentTimeMillis();
             log.info("----- Execute processor {}. [START]", processor.getClass().getSimpleName());
             processor.process(dir);
-            log.info("----- Execute processor {}. [END]. Time spent: {}", processor.getClass().getSimpleName(), System.currentTimeMillis() - start);
+            log.info("----- Execute processor {}. [END]. Time spent: {}\n", processor.getClass().getSimpleName(), System.currentTimeMillis() - start);
         }
     }
 }

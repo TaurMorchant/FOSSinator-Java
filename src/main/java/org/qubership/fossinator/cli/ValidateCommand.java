@@ -6,16 +6,10 @@ import picocli.CommandLine;
 
 @Slf4j
 @CommandLine.Command(name = "validate", description = "Checks the project for usage of deprecated libraries")
-class ValidateCommand implements Runnable {
-
-    @CommandLine.Option(names = {"-d", "--dir"}, description = "Dir to process")
-    private String dir;
+class ValidateCommand extends AbstractCommand {
 
     @Override
-    public void run() {
-        if (dir == null) {
-            dir = ".";
-        }
+    protected void runCommand() {
         try {
             DependenciesValidator dependenciesValidator = new DependenciesValidator();
             dependenciesValidator.validateDependencies(dir);
