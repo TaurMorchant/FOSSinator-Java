@@ -25,7 +25,7 @@ public abstract class AbstractCommand implements Runnable {
 
         LoadConfigs();
 
-        log.info("Running command in directory: {}", dir);
+        log.info("Running {} command in directory: {}", this.getClass().getSimpleName(), dir);
         runCommand();
     }
 

@@ -13,7 +13,7 @@ public class DependenciesValidator {
     @SuppressWarnings("all")
     private static final String DEPENDENCY_REGEX = """
             ^(\\[INFO]\\s+)?    # [INFO] or nothing
-            [|+\\s\\\\]+          # part of tree
+            [|+\\s\\\\]+        # part of tree
             -\\s+               # minus sign befor dependency
             ([\\w\\.-]+)        # groupId
             :
@@ -26,6 +26,10 @@ public class DependenciesValidator {
 """;
 
     private static final Pattern DEPENDENCY_PATTERN = Pattern.compile(DEPENDENCY_REGEX, Pattern.COMMENTS);
+
+    private static final Pattern ERROR_PATTERN = Pattern.compile("^\\[ERROR].*");
+
+    private boolean isFailed = false;
 
     public void validateDependencies(String dir) throws Exception {
         long startTime = System.currentTimeMillis();
@@ -56,6 +60,11 @@ public class DependenciesValidator {
 
         process.waitFor();
 
+        if (isFailed) {
+            log.error("It is not possible to complete the validation because the command 'mvn dependency:tree' execution failed. " +
+                      "Please rerun the command in verbose mode to get additional logs.");
+        }
+
         if (updated) {
             log.error("Forbidden dependencies detected. Please, check file: {}. Forbidden dependencies marked by '---DEPRECATED---' label", outputFile.getAbsolutePath());
         } else {
@@ -75,6 +84,9 @@ public class DependenciesValidator {
 
     String processLine(String line) {
         String result = line;
+
+        checkForError(line);
+
         Matcher matcher = DEPENDENCY_PATTERN.matcher(line.trim());
         if (matcher.matches()) {
             String groupId = matcher.group(2);
@@ -89,6 +101,14 @@ public class DependenciesValidator {
         }
 
         return result;
+    }
+
+    void checkForError(String line) {
+        Matcher matcher = ERROR_PATTERN.matcher(line.trim());
+        if (matcher.matches()) {
+            isFailed = true;
+            log.debug("mvn output: {}", line);
+        }
     }
 }
 

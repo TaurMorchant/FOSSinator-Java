@@ -93,6 +93,9 @@ public class PomFileHandler {
                     vn.pop();
                 } else {
                     //there is no property in current pom, looks like it in parent pom => just replace version directly
+                    log.warn("Looks like property {} specified in parent pom. Cannot change property value. " +
+                             "Property placeholder will be replaced by static value instead: {}",
+                            entry.getKey().getPropertyName(), entry.getValue());
                     replacementsToApply.add(entry.getKey(), entry.getValue());
                 }
             }
