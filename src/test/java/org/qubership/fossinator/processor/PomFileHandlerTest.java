@@ -10,7 +10,7 @@ import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class PomProcessorTest {
+class PomFileHandlerTest {
 
     @AfterEach
     void tearDown() {
@@ -384,9 +384,9 @@ class PomProcessorTest {
 
     private void generalTest(String input, String expected) throws Exception {
 
-        PomProcessor processor = new PomProcessor();
+        PomFileHandler handler = new PomFileHandler();
 
-        String actual = processor.processPom(input);
+        String actual = handler.processPom(input);
 
         assertEquals(expected, actual);
     }

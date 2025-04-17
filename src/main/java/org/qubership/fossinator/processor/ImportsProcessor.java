@@ -35,7 +35,7 @@ public class ImportsProcessor extends AbstractProcessor {
 
             if (updated) {
                 saveChanges(filePath, compilationUnit);
-                updatedFilesNumber++;
+                updatedFilesNumber.addAndGet(1);
             }
         } catch (Exception e) {
             log.warn("Cannot parse file: {}", filePath);

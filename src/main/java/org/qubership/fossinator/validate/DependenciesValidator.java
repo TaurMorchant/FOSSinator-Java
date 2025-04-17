@@ -10,6 +10,7 @@ import java.util.regex.Pattern;
 
 @Slf4j
 public class DependenciesValidator {
+    @SuppressWarnings("all")
     private static final String DEPENDENCY_REGEX = """
             ^(\\[INFO]\\s+)?    # [INFO] or nothing
             [|+\\s\\\\]+          # part of tree
@@ -39,7 +40,6 @@ public class DependenciesValidator {
 
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
              BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile))) {
-
 
             String line;
             while ((line = reader.readLine()) != null) {

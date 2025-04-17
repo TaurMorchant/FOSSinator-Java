@@ -39,7 +39,7 @@ public class ImportPatternsProcessor extends AbstractProcessor {
 
             if (updated) {
                 saveChanges(filePath, compilationUnit);
-                updatedFilesNumber++;
+                updatedFilesNumber.addAndGet(1);
                 log.debug("File was updated: {}", filePath);
             }
         } catch (Exception e) {
@@ -57,11 +57,12 @@ public class ImportPatternsProcessor extends AbstractProcessor {
     boolean processFile(CompilationUnit cu) {
         boolean updated = false;
 
+        Index index = ClassesIndex.getIndex();
+
         List<ImportDeclaration> imports = cu.getImports();
         for (int i = 0; i < imports.size(); i++) {
             ImportDeclaration imp = imports.get(i);
 
-            Index index = ClassesIndex.getIndex();
             ImportPattern matchedPattern = getMatchedPattern(imp);
             if (matchedPattern != null) {
                 String importToSearchInIndex = imp.isStatic() ? getClassNameOfStaticImport(imp) : imp.getNameAsString();
