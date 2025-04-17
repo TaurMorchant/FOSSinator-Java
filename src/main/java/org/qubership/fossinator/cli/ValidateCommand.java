@@ -14,7 +14,7 @@ class ValidateCommand implements Runnable {
     @Override
     public void run() {
         if (dir == null) {
-            dir = "C:\\git\\Test Resources For Fossinator\\dbaas-old";
+            dir = ".";
         }
         try {
             DependenciesValidator dependenciesValidator = new DependenciesValidator();

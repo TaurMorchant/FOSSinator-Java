@@ -1,10 +1,11 @@
 package org.qubership.fossinator.config;
 
-import java.io.File;
-import java.io.IOException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import lombok.extern.slf4j.Slf4j;
+
+import java.io.IOException;
+import java.io.InputStream;
 
 @Slf4j
 public class ConfigReader {
@@ -13,10 +14,11 @@ public class ConfigReader {
     public static void readConfig() {
         long start = System.currentTimeMillis();
         ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory());
-        try {
-            config = objectMapper.readValue(new File("config.yaml"), Config.class);
+        try (InputStream is = ConfigReader.class.getClassLoader().getResourceAsStream("config.yaml")) {
+            config = objectMapper.readValue(is, Config.class);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            log.error("Could not read config", e);
+            System.exit(1);
         }
         log.debug("readConfig. Execution time = {}", System.currentTimeMillis() - start);
     }
