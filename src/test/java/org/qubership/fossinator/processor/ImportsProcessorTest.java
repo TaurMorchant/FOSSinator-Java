@@ -1,16 +1,16 @@
 package org.qubership.fossinator.processor;
 
+import com.github.javaparser.JavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
-import com.github.javaparser.JavaParser;
 import org.qubership.fossinator.config.Config;
 import org.qubership.fossinator.config.ConfigReader;
 import org.qubership.fossinator.config.Import;
 
 import java.util.ArrayList;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class ImportsProcessorTest {
 
@@ -22,7 +22,7 @@ class ImportsProcessorTest {
     @Test
     void processFile_hasNotImportsToChange() {
         Config.JavaConfig javaConfig = new Config.JavaConfig();
-        javaConfig.setImportsToReplace(new ArrayList<>(){{
+        javaConfig.setImportsToReplace(new ArrayList<>() {{
             add(Import.builder().oldName("test1").newName("test2").build());
         }});
         Config config = new Config(javaConfig);
@@ -44,7 +44,7 @@ class ImportsProcessorTest {
     @Test
     void processFile_hasImportsToChange_equalName() {
         Config.JavaConfig javaConfig = new Config.JavaConfig();
-        javaConfig.setImportsToReplace(new ArrayList<>(){{
+        javaConfig.setImportsToReplace(new ArrayList<>() {{
             add(Import
                     .builder()
                     .oldName("com.organization.test.FooClass")
@@ -81,7 +81,7 @@ class ImportsProcessorTest {
     @Test
     void processFile_hasImportsToChange_containsName() {
         Config.JavaConfig javaConfig = new Config.JavaConfig();
-        javaConfig.setImportsToReplace(new ArrayList<>(){{
+        javaConfig.setImportsToReplace(new ArrayList<>() {{
             add(Import
                     .builder()
                     .oldName("com.organization")

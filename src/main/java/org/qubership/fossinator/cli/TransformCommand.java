@@ -21,10 +21,15 @@ class TransformCommand extends AbstractCommand {
 
         ServiceLoader<Processor> processors = ServiceLoader.load(Processor.class);
         for (Processor processor : processors) {
-            long start = System.currentTimeMillis();
-            log.info("----- Execute processor {}. [START]", processor.getClass().getSimpleName());
-            processor.process(dir);
-            log.info("----- Execute processor {}. [END]. Time spent: {}\n", processor.getClass().getSimpleName(), System.currentTimeMillis() - start);
+            if (processor.shouldBeExecuted()) {
+                long start = System.currentTimeMillis();
+                log.info("----- Execute processor {}. [ START]", processor.getClass().getSimpleName());
+                processor.process(dir);
+                log.info("----- Execute processor {}. [FINISH]. Files changed: {}. Time spent: {}\n",
+                        processor.getClass().getSimpleName(), processor.getUpdatedFilesNumber(), System.currentTimeMillis() - start);
+            } else {
+                log.info("----- Processor {} was skipped because its configuration is missing\n", processor.getClass().getSimpleName());
+            }
         }
     }
 }

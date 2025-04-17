@@ -8,12 +8,13 @@ import org.junit.jupiter.api.Test;
 import org.qubership.fossinator.config.Config;
 import org.qubership.fossinator.config.ConfigReader;
 import org.qubership.fossinator.config.ImportPattern;
-import org.qubership.fossinator.index.Index;
 import org.qubership.fossinator.index.ClassesIndex;
+import org.qubership.fossinator.index.Index;
 
 import java.util.ArrayList;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class ImportPatternsProcessorTest {
 
@@ -81,7 +82,7 @@ class ImportPatternsProcessorTest {
     @Test
     public void processFile_hasNotImportsToChange() {
         Config.JavaConfig javaConfig = new Config.JavaConfig();
-        javaConfig.setImportsToReplaceByPattern(new ArrayList<>(){{
+        javaConfig.setImportsToReplaceByPattern(new ArrayList<>() {{
             add(ImportPattern.builder().oldPackageName("com.company").newPackageName("org.organization").build());
         }});
         Config config = new Config(javaConfig);
@@ -103,7 +104,7 @@ class ImportPatternsProcessorTest {
     @Test
     public void processFile_hasImportsToChange_butClassNotInIndex() {
         Config.JavaConfig javaConfig = new Config.JavaConfig();
-        javaConfig.setImportsToReplaceByPattern(new ArrayList<>(){{
+        javaConfig.setImportsToReplaceByPattern(new ArrayList<>() {{
             add(ImportPattern.builder().oldPackageName("com.company").newPackageName("org.organization").build());
         }});
         Config config = new Config(javaConfig);
@@ -126,7 +127,7 @@ class ImportPatternsProcessorTest {
     @Test
     public void processFile_hasClassImportToChange_classInIndex() {
         Config.JavaConfig javaConfig = new Config.JavaConfig();
-        javaConfig.setImportsToReplaceByPattern(new ArrayList<>(){{
+        javaConfig.setImportsToReplaceByPattern(new ArrayList<>() {{
             add(ImportPattern.builder().oldPackageName("com.company").newPackageName("org.organization").build());
         }});
         Config config = new Config(javaConfig);
@@ -163,7 +164,7 @@ class ImportPatternsProcessorTest {
     @Test
     public void processFile_hasPackageImportToChange_butPackageNotInIndex() {
         Config.JavaConfig javaConfig = new Config.JavaConfig();
-        javaConfig.setImportsToReplaceByPattern(new ArrayList<>(){{
+        javaConfig.setImportsToReplaceByPattern(new ArrayList<>() {{
             add(ImportPattern.builder().oldPackageName("com.company").newPackageName("org.organization").build());
         }});
         Config config = new Config(javaConfig);
@@ -200,7 +201,7 @@ class ImportPatternsProcessorTest {
     @Test
     public void processFile_hasPackageImportToChange_packageInIndex() {
         Config.JavaConfig javaConfig = new Config.JavaConfig();
-        javaConfig.setImportsToReplaceByPattern(new ArrayList<>(){{
+        javaConfig.setImportsToReplaceByPattern(new ArrayList<>() {{
             add(ImportPattern.builder().oldPackageName("com.company").newPackageName("org.organization").build());
         }});
         Config config = new Config(javaConfig);
@@ -222,7 +223,7 @@ class ImportPatternsProcessorTest {
     @Test
     public void processFile_hasPackageImportToChange_staticImport() {
         Config.JavaConfig javaConfig = new Config.JavaConfig();
-        javaConfig.setImportsToReplaceByPattern(new ArrayList<>(){{
+        javaConfig.setImportsToReplaceByPattern(new ArrayList<>() {{
             add(ImportPattern.builder().oldPackageName("com.company").newPackageName("org.organization").build());
         }});
         Config config = new Config(javaConfig);
@@ -259,7 +260,7 @@ class ImportPatternsProcessorTest {
     @Test
     public void processFile_hasPackageImportToChange_staticWildcardImport() {
         Config.JavaConfig javaConfig = new Config.JavaConfig();
-        javaConfig.setImportsToReplaceByPattern(new ArrayList<>(){{
+        javaConfig.setImportsToReplaceByPattern(new ArrayList<>() {{
             add(ImportPattern.builder().oldPackageName("com.company").newPackageName("org.organization").build());
         }});
         Config config = new Config(javaConfig);

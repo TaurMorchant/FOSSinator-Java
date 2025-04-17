@@ -11,30 +11,23 @@ import org.qubership.fossinator.config.Import;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
-import java.util.stream.Stream;
 
 @Slf4j
-public class ImportsProcessor implements Processor {
+public class ImportsProcessor extends AbstractProcessor {
 
-    public void process(String dir) {
-        Path dirPath = Paths.get(dir);
-
-        if (ConfigReader.getConfig().getImportsToReplace().isEmpty()) {
-            return;
-        }
-
-        try (Stream<Path> paths = Files.walk(dirPath)) {
-            paths.filter(Files::isRegularFile)
-                    .filter(p -> p.toString().endsWith(".java"))
-                    .forEach(this::processFilePath);
-        } catch (IOException e) {
-            log.error("Error while processing files in dir {}", dir);
-        }
+    @Override
+    public boolean shouldBeExecuted() {
+        return !ConfigReader.getConfig().getImportsToReplace().isEmpty();
     }
 
-    void processFilePath(Path filePath) {
+    @Override
+    public void process(String dir) {
+        processDir(dir, ".java");
+    }
+
+    @Override
+    void processFile(Path filePath) {
         try {
             CompilationUnit compilationUnit = getCompilationUnit(filePath);
 
@@ -42,6 +35,7 @@ public class ImportsProcessor implements Processor {
 
             if (updated) {
                 saveChanges(filePath, compilationUnit);
+                updatedFilesNumber++;
             }
         } catch (Exception e) {
             log.warn("Cannot parse file: {}", filePath);

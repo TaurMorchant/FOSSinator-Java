@@ -7,36 +7,29 @@ import com.github.javaparser.printer.lexicalpreservation.LexicalPreservingPrinte
 import lombok.extern.slf4j.Slf4j;
 import org.qubership.fossinator.config.ConfigReader;
 import org.qubership.fossinator.config.ImportPattern;
-import org.qubership.fossinator.index.Index;
 import org.qubership.fossinator.index.ClassesIndex;
+import org.qubership.fossinator.index.Index;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
-import java.util.stream.Stream;
 
 @Slf4j
-public class ImportPatternsProcessor implements Processor {
+public class ImportPatternsProcessor extends AbstractProcessor {
+
     @Override
-    public void process(String dir) {
-        Path dirPath = Paths.get(dir);
-
-        if (ConfigReader.getConfig().getImportsToReplaceByPattern().isEmpty()) {
-            return;
-        }
-
-        try (Stream<Path> paths = Files.walk(dirPath)) {
-            paths.filter(Files::isRegularFile)
-                    .filter(p -> p.toString().endsWith(".java"))
-                    .forEach(this::processFilePath);
-        } catch (IOException e) {
-            log.error("Error while processing files in dir {}", dir);
-        }
+    public boolean shouldBeExecuted() {
+        return !ConfigReader.getConfig().getImportsToReplaceByPattern().isEmpty();
     }
 
-    void processFilePath(Path filePath) {
+    @Override
+    public void process(String dir) {
+        processDir(dir, ".java");
+    }
+
+    @Override
+    void processFile(Path filePath) {
         try {
             CompilationUnit compilationUnit = getCompilationUnit(filePath);
 
@@ -44,6 +37,7 @@ public class ImportPatternsProcessor implements Processor {
 
             if (updated) {
                 saveChanges(filePath, compilationUnit);
+                updatedFilesNumber++;
             }
         } catch (Exception e) {
             log.warn("Cannot parse file: {}", filePath);

@@ -1,6 +1,9 @@
 package org.qubership.fossinator.processor;
 
-import com.ximpleware.*;
+import com.ximpleware.AutoPilot;
+import com.ximpleware.ParseException;
+import com.ximpleware.VTDGen;
+import com.ximpleware.VTDNav;
 import lombok.extern.slf4j.Slf4j;
 import org.qubership.fossinator.config.ConfigReader;
 import org.qubership.fossinator.config.Dependency;
@@ -8,15 +11,12 @@ import org.qubership.fossinator.processor.model.Replacement;
 import org.qubership.fossinator.processor.model.Replacements;
 import org.qubership.fossinator.processor.model.TagPosition;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Objects;
-import java.util.stream.Stream;
 
 @Slf4j
-public class PomProcessor implements Processor {
+public class PomProcessor extends AbstractProcessor {
     private final static String GROUP_ID_TAG = "groupId";
     private final static String ARTIFACT_ID_TAG = "artifactId";
     private final static String VERSION_TAG = "version";
@@ -24,23 +24,17 @@ public class PomProcessor implements Processor {
     private final static String POM_FILE_NAME = "pom.xml";
 
     @Override
-    public void process(String dir) {
-        Path dirPath = Paths.get(dir);
-
-        if (ConfigReader.getConfig().getDependenciesToReplace().isEmpty()) {
-            return;
-        }
-
-        try (Stream<Path> s = Files.walk(dirPath)) {
-            s.filter(path -> path.toString()
-                    .endsWith(POM_FILE_NAME))
-                    .forEach(this::processPomFile);
-        } catch (IOException e) {
-            log.error("Error while processing files in dir {}", dir);
-        }
+    public boolean shouldBeExecuted() {
+        return !ConfigReader.getConfig().getDependenciesToReplace().isEmpty();
     }
 
-    public void processPomFile(Path filePath) {
+    @Override
+    public void process(String dir) {
+        processDir(dir, POM_FILE_NAME);
+    }
+
+    @Override
+    public void processFile(Path filePath) {
         try {
             log.debug("Process pom.xml : {}", filePath.toString());
 
@@ -51,13 +45,14 @@ public class PomProcessor implements Processor {
 
             if (!Objects.equals(pomXml, newPomXml)) {
                 Files.write(filePath, newPomXml.getBytes());
+                updatedFilesNumber++;
             }
         } catch (Exception e) {
             log.error("Error while processing pom.xml {}", filePath.toString());
         }
     }
 
-    String processPom(String pomXml) throws Exception{
+    String processPom(String pomXml) throws Exception {
         Replacements replacementsToApply = getDependencyReplacementsToApply(pomXml);
 
         if (!replacementsToApply.isEmpty()) {
