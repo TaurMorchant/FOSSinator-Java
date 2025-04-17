@@ -17,10 +17,11 @@ public class ConfigReader {
         try (InputStream is = ConfigReader.class.getClassLoader().getResourceAsStream("config.yaml")) {
             config = objectMapper.readValue(is, Config.class);
         } catch (IOException e) {
-            log.error("Could not read config", e);
+            log.error("Could not read config");
+            log.debug("Error details: ", e);
             System.exit(1);
         }
-        log.debug("readConfig. Execution time = {}", System.currentTimeMillis() - start);
+        log.debug("readConfig. Time spent: {}", System.currentTimeMillis() - start);
     }
 
     public static void setConfig(Config config) {

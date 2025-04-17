@@ -14,7 +14,8 @@ class ValidateCommand extends AbstractCommand {
             DependenciesValidator dependenciesValidator = new DependenciesValidator();
             dependenciesValidator.validateDependencies(dir);
         } catch (Exception e) {
-            log.error("Error during project validation", e);
+            log.error("Error during project validation");
+            log.debug("Error details: ", e);
         }
     }
 }

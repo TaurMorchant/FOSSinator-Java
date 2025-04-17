@@ -3,11 +3,11 @@ package org.qubership.fossinator.processor.model;
 import java.util.ArrayList;
 
 public class Replacements extends ArrayList<Replacement> {
-    public void add(TagPosition tagPosition, String newValue) {
-        if (tagPosition != null) {
+    public void add(Tag tag, String newValue) {
+        if (tag != null) {
             add(new Replacement(
-                    tagPosition.offset(),
-                    tagPosition.length(),
+                    tag.offset(),
+                    tag.length(),
                     newValue
             ));
         }

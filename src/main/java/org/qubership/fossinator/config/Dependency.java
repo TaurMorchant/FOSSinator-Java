@@ -25,7 +25,7 @@ public class Dependency {
     @JsonProperty("new-version")
     private String newVersion;
 
-    public boolean isAnyArtifact() {
+    public boolean isWildcardArtifact() {
         return Objects.equals(oldArtifactId, ANY_WILDCARD);
     }
 
@@ -34,6 +34,6 @@ public class Dependency {
     }
 
     public boolean isArtifactIdMatch(String artifactId) {
-        return isAnyArtifact() || Objects.equals(this.oldArtifactId, artifactId);
+        return isWildcardArtifact() || Objects.equals(this.oldArtifactId, artifactId);
     }
 }

@@ -290,6 +290,98 @@ class PomProcessorTest {
         generalTest(input, expected);
     }
 
+    @Test
+    void processPom_hasDependenciesToChange_versionInProperties() throws Exception {
+        Config.JavaConfig javaConfig = new Config.JavaConfig();
+        javaConfig.setDependenciesToReplace(new ArrayList<>() {{
+            add(Dependency.builder()
+                    .oldGroupId("org.foo")
+                    .oldArtifactId("artifact1")
+                    .newGroupId("org.bar")
+                    .newArtifactId("artifact2")
+                    .newVersion("6.6.6")
+                    .build());
+        }});
+        Config config = new Config(javaConfig);
+
+        ConfigReader.setConfig(config);
+
+        String input = """
+                <project xmlns="http://maven.apache.org/POM/4.0.0">
+                    <properties>
+                        <artifact.version>1.1.1</artifact.version>
+                    </properties>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.foo</groupId>
+                            <artifactId>artifact1</artifactId>
+                            <version>${artifact.version}</version>
+                        </dependency>
+                   </dependencies>
+                </project>
+                """;
+
+        String expected = """
+                <project xmlns="http://maven.apache.org/POM/4.0.0">
+                    <properties>
+                        <artifact.version>6.6.6</artifact.version>
+                    </properties>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.bar</groupId>
+                            <artifactId>artifact2</artifactId>
+                            <version>${artifact.version}</version>
+                        </dependency>
+                   </dependencies>
+                </project>
+                """;
+
+        generalTest(input, expected);
+    }
+
+    @Test
+    void processPom_hasDependenciesToChange_versionInParentProperties() throws Exception {
+        Config.JavaConfig javaConfig = new Config.JavaConfig();
+        javaConfig.setDependenciesToReplace(new ArrayList<>() {{
+            add(Dependency.builder()
+                    .oldGroupId("org.foo")
+                    .oldArtifactId("artifact1")
+                    .newGroupId("org.bar")
+                    .newArtifactId("artifact2")
+                    .newVersion("6.6.6")
+                    .build());
+        }});
+        Config config = new Config(javaConfig);
+
+        ConfigReader.setConfig(config);
+
+        String input = """
+                <project xmlns="http://maven.apache.org/POM/4.0.0">
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.foo</groupId>
+                            <artifactId>artifact1</artifactId>
+                            <version>${artifact.version}</version>
+                        </dependency>
+                   </dependencies>
+                </project>
+                """;
+
+        String expected = """
+                <project xmlns="http://maven.apache.org/POM/4.0.0">
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.bar</groupId>
+                            <artifactId>artifact2</artifactId>
+                            <version>6.6.6</version>
+                        </dependency>
+                   </dependencies>
+                </project>
+                """;
+
+        generalTest(input, expected);
+    }
+
     private void generalTest(String input, String expected) throws Exception {
 
         PomProcessor processor = new PomProcessor();

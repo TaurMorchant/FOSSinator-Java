@@ -18,6 +18,8 @@ import java.util.List;
 @Slf4j
 public class ImportPatternsProcessor extends AbstractProcessor {
 
+    private static final String JAVA_CLASS_EXTENSION = ".java";
+
     @Override
     public boolean shouldBeExecuted() {
         return !ConfigReader.getConfig().getImportsToReplaceByPattern().isEmpty();
@@ -25,7 +27,7 @@ public class ImportPatternsProcessor extends AbstractProcessor {
 
     @Override
     public void process(String dir) {
-        processDir(dir, ".java");
+        processDir(dir, JAVA_CLASS_EXTENSION);
     }
 
     @Override
@@ -38,6 +40,7 @@ public class ImportPatternsProcessor extends AbstractProcessor {
             if (updated) {
                 saveChanges(filePath, compilationUnit);
                 updatedFilesNumber++;
+                log.debug("File was updated: {}", filePath);
             }
         } catch (Exception e) {
             log.warn("Cannot parse file: {}", filePath);
@@ -109,6 +112,7 @@ public class ImportPatternsProcessor extends AbstractProcessor {
             Files.write(filePath, updatedCode.getBytes());
         } catch (IOException e) {
             log.error("Cannot write file: {}", filePath);
+            log.debug("Error details: ", e);
         }
     }
 }

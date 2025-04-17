@@ -1,13 +1,14 @@
 package org.qubership.fossinator.logging;
 
-public class LogConfigurator {
-    private static final String DEFAULT_LOG_LEVEL_PROP = "org.slf4j.simpleLogger.defaultLogLevel";
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.core.config.Configurator;
 
+public class LogConfigurator {
     public static void configureLogging(boolean verbose) {
         if (verbose) {
-            System.setProperty(DEFAULT_LOG_LEVEL_PROP, "debug");
+            Configurator.setRootLevel(Level.DEBUG);
         } else {
-            System.setProperty(DEFAULT_LOG_LEVEL_PROP, "info");
+            Configurator.setRootLevel(Level.INFO);
         }
     }
 }

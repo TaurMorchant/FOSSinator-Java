@@ -9,10 +9,12 @@ import org.qubership.fossinator.config.ConfigReader;
 import org.qubership.fossinator.config.Dependency;
 import org.qubership.fossinator.processor.model.Replacement;
 import org.qubership.fossinator.processor.model.Replacements;
-import org.qubership.fossinator.processor.model.TagPosition;
+import org.qubership.fossinator.processor.model.Tag;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 @Slf4j
@@ -22,6 +24,9 @@ public class PomProcessor extends AbstractProcessor {
     private final static String VERSION_TAG = "version";
 
     private final static String POM_FILE_NAME = "pom.xml";
+
+    Replacements replacementsToApply;
+    Map<Tag, String> propertiesToReplace;
 
     @Override
     public boolean shouldBeExecuted() {
@@ -49,12 +54,20 @@ public class PomProcessor extends AbstractProcessor {
             }
         } catch (Exception e) {
             log.error("Error while processing pom.xml {}", filePath.toString());
+            log.debug("Error details: ", e);
         }
     }
 
     String processPom(String pomXml) throws Exception {
-        Replacements replacementsToApply = getDependencyReplacementsToApply(pomXml);
+        replacementsToApply = new Replacements();
+        propertiesToReplace = new HashMap<>();
 
+        collectDependencyReplacementsToApply(pomXml);
+
+        return applyReplacements(pomXml);
+    }
+
+    String applyReplacements(String pomXml) {
         if (!replacementsToApply.isEmpty()) {
             replacementsToApply.sort((a, b) -> Long.compare(b.offset(), a.offset()));
 
@@ -72,15 +85,30 @@ public class PomProcessor extends AbstractProcessor {
         return pomXml;
     }
 
-    Replacements getDependencyReplacementsToApply(String pomXml) throws Exception {
+    void collectDependencyReplacementsToApply(String pomXml) throws Exception {
         VTDNav vn = getVtdNav(pomXml);
 
-        Replacements replacementsToApply = new Replacements();
+        processDependenciesXpath(vn, "/project/dependencies/dependency");
+        processDependenciesXpath(vn, "/project/dependencyManagement/dependencies/dependency");
 
-        processDependenciesXpath(replacementsToApply, vn, "/project/dependencies/dependency");
-        processDependenciesXpath(replacementsToApply, vn, "/project/dependencyManagement/dependencies/dependency");
+        if (!propertiesToReplace.isEmpty()) {
+            for (Map.Entry<Tag, String> entry : propertiesToReplace.entrySet()) {
+                AutoPilot ap = new AutoPilot(vn);
+                ap.selectXPath("/project/properties");
 
-        return replacementsToApply;
+                if (ap.evalXPath() != -1) {
+                    vn.push();
+
+                    Tag propertyTag = getTagPosition(vn, entry.getKey().getPropertyName());
+                    replacementsToApply.add(propertyTag, entry.getValue());
+
+                    vn.pop();
+                } else {
+                    //there is no property in current pom, looks like it in parent pom => just replace version directly
+                    replacementsToApply.add(entry.getKey(), entry.getValue());
+                }
+            }
+        }
     }
 
     VTDNav getVtdNav(String pomXml) throws ParseException {
@@ -91,7 +119,7 @@ public class PomProcessor extends AbstractProcessor {
         return vg.getNav();
     }
 
-    void processDependenciesXpath(Replacements replacements, VTDNav vn, String xpath) throws Exception {
+    void processDependenciesXpath(VTDNav vn, String xpath) throws Exception {
         AutoPilot ap = new AutoPilot(vn);
         ap.selectXPath(xpath);
 
@@ -104,16 +132,22 @@ public class PomProcessor extends AbstractProcessor {
             if (currentGroupId != null && currentArtifactId != null) {
                 Dependency depToReplace = ConfigReader.getConfig().getDependency(currentGroupId, currentArtifactId);
                 if (depToReplace != null) {
-                    TagPosition groupIdPos = getTagPosition(vn, GROUP_ID_TAG);
-                    replacements.add(groupIdPos, depToReplace.getNewGroupId());
+                    Tag groupIdTag = getTagPosition(vn, GROUP_ID_TAG);
+                    replacementsToApply.add(groupIdTag, depToReplace.getNewGroupId());
 
-                    TagPosition artifactIdPos = getTagPosition(vn, ARTIFACT_ID_TAG);
-                    if (!depToReplace.isAnyArtifact()) {
-                        replacements.add(artifactIdPos, depToReplace.getNewArtifactId());
+                    Tag artifactIdTag = getTagPosition(vn, ARTIFACT_ID_TAG);
+                    if (!depToReplace.isWildcardArtifact()) {
+                        replacementsToApply.add(artifactIdTag, depToReplace.getNewArtifactId());
                     }
 
-                    TagPosition versionPos = getTagPosition(vn, VERSION_TAG);
-                    replacements.add(versionPos, depToReplace.getNewVersion());
+                    Tag versionTag = getTagPosition(vn, VERSION_TAG);
+                    if (versionTag != null) {
+                        if (versionTag.isProperty()) {
+                            propertiesToReplace.put(versionTag, depToReplace.getNewVersion());
+                        } else {
+                            replacementsToApply.add(versionTag, depToReplace.getNewVersion());
+                        }
+                    }
                 }
             }
 
@@ -139,7 +173,7 @@ public class PomProcessor extends AbstractProcessor {
         }
     }
 
-    TagPosition getTagPosition(VTDNav vn, String tagName) throws Exception {
+    Tag getTagPosition(VTDNav vn, String tagName) throws Exception {
         vn.push();
         AutoPilot ap = new AutoPilot(vn);
         ap.selectXPath(tagName);
@@ -147,7 +181,8 @@ public class PomProcessor extends AbstractProcessor {
             if (ap.evalXPath() != -1) {
                 int val = vn.getText();
                 if (val != -1) {
-                    return new TagPosition(vn.getTokenOffset(val), vn.getTokenLength(val));
+                    String text = vn.toString(val);
+                    return new Tag(text, vn.getTokenOffset(val), vn.getTokenLength(val));
                 }
             }
             return null;

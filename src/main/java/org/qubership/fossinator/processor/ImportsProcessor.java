@@ -78,6 +78,7 @@ public class ImportsProcessor extends AbstractProcessor {
             Files.write(filePath, updatedCode.getBytes());
         } catch (IOException e) {
             log.error("Cannot write file: {}", filePath);
+            log.debug("Error details: ", e);
         }
     }
 }

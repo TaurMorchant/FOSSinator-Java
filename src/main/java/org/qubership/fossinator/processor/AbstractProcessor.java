@@ -23,6 +23,7 @@ public abstract class AbstractProcessor implements Processor {
                     .forEach(this::processFile);
         } catch (IOException e) {
             log.error("Error while processing files in dir {}", dir);
+            log.debug("Error details: ", e);
         }
     }
 
