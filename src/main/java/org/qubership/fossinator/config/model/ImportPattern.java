@@ -1,4 +1,4 @@
-package org.qubership.fossinator.config;
+package org.qubership.fossinator.config.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;

@@ -6,7 +6,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.qubership.fossinator.config.Config;
 import org.qubership.fossinator.config.ConfigReader;
-import org.qubership.fossinator.config.Import;
+import org.qubership.fossinator.config.model.Import;
 
 import java.util.ArrayList;
 

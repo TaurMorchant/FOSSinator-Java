@@ -6,15 +6,17 @@ import com.github.javaparser.ast.ImportDeclaration;
 import com.github.javaparser.printer.lexicalpreservation.LexicalPreservingPrinter;
 import lombok.extern.slf4j.Slf4j;
 import org.qubership.fossinator.config.ConfigReader;
-import org.qubership.fossinator.config.Import;
+import org.qubership.fossinator.config.model.Import;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
+import static org.qubership.fossinator.Constants.JAVA_CLASS_EXTENSION;
+
 @Slf4j
-public class ImportsProcessor extends AbstractProcessor {
+public class ImportsProcessor extends WalkThroughFilesProcessor {
 
     @Override
     public boolean shouldBeExecuted() {
@@ -22,8 +24,8 @@ public class ImportsProcessor extends AbstractProcessor {
     }
 
     @Override
-    public void process(String dir) {
-        processDir(dir, ".java");
+    public String getFileSuffix(){
+        return JAVA_CLASS_EXTENSION;
     }
 
     @Override

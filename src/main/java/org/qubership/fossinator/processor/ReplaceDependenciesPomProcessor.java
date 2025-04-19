@@ -5,9 +5,10 @@ import org.qubership.fossinator.config.ConfigReader;
 
 import java.nio.file.Path;
 
+import static org.qubership.fossinator.Constants.POM_FILE_NAME;
+
 @Slf4j
-public class PomProcessor extends AbstractProcessor {
-    private final static String POM_FILE_NAME = "pom.xml";
+public class ReplaceDependenciesPomProcessor extends AbstractPomFileProcessor {
 
     @Override
     public boolean shouldBeExecuted() {
@@ -15,18 +16,14 @@ public class PomProcessor extends AbstractProcessor {
     }
 
     @Override
-    public void process(String dir) {
-        processDir(dir, POM_FILE_NAME);
+    public String getFileSuffix(){
+        return POM_FILE_NAME;
     }
 
     @Override
-    public void processFile(Path filePath) {
+    boolean processPom(Path filePath, String pomXml) throws Exception {
         //we should create new instance of PomFileHandler each time, because it has state
-        PomFileHandler handler = new PomFileHandler();
-        boolean updated = handler.handle(filePath);
-
-        if (updated) {
-            updatedFilesNumber.addAndGet(1);
-        }
+        ReplaceDependenciesPomFileHandler handler = new ReplaceDependenciesPomFileHandler();
+        return handler.handle(filePath, pomXml);
     }
 }

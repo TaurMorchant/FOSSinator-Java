@@ -3,6 +3,10 @@ package org.qubership.fossinator.config;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
+import org.qubership.fossinator.config.model.DependencyToAdd;
+import org.qubership.fossinator.config.model.DependencyToReplace;
+import org.qubership.fossinator.config.model.Import;
+import org.qubership.fossinator.config.model.ImportPattern;
 
 import java.util.Collections;
 import java.util.List;
@@ -26,10 +30,13 @@ public class Config {
         private List<ImportPattern> importsToReplaceByPattern;
 
         @JsonProperty("dependencies-to-replace")
-        private List<Dependency> dependenciesToReplace;
+        private List<DependencyToReplace> dependenciesToReplace;
 
-        public Dependency getDependency(String groupId, String artifactId) {
-            for (Dependency dep : dependenciesToReplace) {
+        @JsonProperty("dependencies-to-add")
+        private List<DependencyToAdd> dependenciesToAdd;
+
+        public DependencyToReplace getDependency(String groupId, String artifactId) {
+            for (DependencyToReplace dep : dependenciesToReplace) {
                 if (dep.isGroupIdMatch(groupId) && dep.isArtifactIdMatch(artifactId)) {
                     return dep;
                 }

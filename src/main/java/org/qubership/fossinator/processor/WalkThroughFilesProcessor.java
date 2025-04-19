@@ -10,15 +10,16 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
 @Slf4j
-public abstract class AbstractProcessor implements Processor {
+public abstract class WalkThroughFilesProcessor implements Processor {
     protected AtomicInteger updatedFilesNumber = new AtomicInteger(0);
 
-    protected void processDir(String dir, String fileSuffix) {
+    @Override
+    public void process(String dir) {
         Path dirPath = Paths.get(dir);
 
         try (Stream<Path> s = Files.walk(dirPath)) {
             s.filter(Files::isRegularFile)
-                    .filter(path -> path.toString().endsWith(fileSuffix))
+                    .filter(path -> path.toString().endsWith(getFileSuffix()))
                     .parallel()
                     .forEach(this::processFile);
         } catch (IOException e) {
@@ -27,10 +28,12 @@ public abstract class AbstractProcessor implements Processor {
         }
     }
 
-    abstract void processFile(Path file);
-
     @Override
     public int getUpdatedFilesNumber() {
         return updatedFilesNumber.get();
     }
+
+    abstract String getFileSuffix();
+
+    abstract void processFile(Path file);
 }

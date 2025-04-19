@@ -1,4 +1,4 @@
-package org.qubership.fossinator.config;
+package org.qubership.fossinator.config.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
@@ -11,7 +11,7 @@ import java.util.Objects;
 @AllArgsConstructor
 @ToString
 @Builder
-public class Dependency {
+public class DependencyToReplace {
     private final static String ANY_WILDCARD = "*";
 
     @JsonProperty("old-group-id")

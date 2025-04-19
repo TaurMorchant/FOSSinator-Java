@@ -6,7 +6,7 @@ import com.github.javaparser.ast.ImportDeclaration;
 import com.github.javaparser.printer.lexicalpreservation.LexicalPreservingPrinter;
 import lombok.extern.slf4j.Slf4j;
 import org.qubership.fossinator.config.ConfigReader;
-import org.qubership.fossinator.config.ImportPattern;
+import org.qubership.fossinator.config.model.ImportPattern;
 import org.qubership.fossinator.index.ClassesIndex;
 import org.qubership.fossinator.index.Index;
 
@@ -15,10 +15,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
-@Slf4j
-public class ImportPatternsProcessor extends AbstractProcessor {
+import static org.qubership.fossinator.Constants.JAVA_CLASS_EXTENSION;
 
-    private static final String JAVA_CLASS_EXTENSION = ".java";
+@Slf4j
+public class ImportPatternsProcessor extends WalkThroughFilesProcessor {
 
     @Override
     public boolean shouldBeExecuted() {
@@ -26,8 +26,8 @@ public class ImportPatternsProcessor extends AbstractProcessor {
     }
 
     @Override
-    public void process(String dir) {
-        processDir(dir, JAVA_CLASS_EXTENSION);
+    public String getFileSuffix(){
+        return JAVA_CLASS_EXTENSION;
     }
 
     @Override

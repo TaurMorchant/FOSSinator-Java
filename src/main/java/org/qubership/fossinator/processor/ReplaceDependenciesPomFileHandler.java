@@ -1,15 +1,14 @@
 package org.qubership.fossinator.processor;
 
 import com.ximpleware.AutoPilot;
-import com.ximpleware.ParseException;
-import com.ximpleware.VTDGen;
 import com.ximpleware.VTDNav;
 import lombok.extern.slf4j.Slf4j;
 import org.qubership.fossinator.config.ConfigReader;
-import org.qubership.fossinator.config.Dependency;
+import org.qubership.fossinator.config.model.DependencyToReplace;
 import org.qubership.fossinator.processor.model.Replacement;
 import org.qubership.fossinator.processor.model.Replacements;
 import org.qubership.fossinator.processor.model.Tag;
+import org.qubership.fossinator.xml.XMLHelper;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -18,7 +17,7 @@ import java.util.Map;
 import java.util.Objects;
 
 @Slf4j
-public class PomFileHandler {
+public class ReplaceDependenciesPomFileHandler {
     private final static String GROUP_ID_TAG = "groupId";
     private final static String ARTIFACT_ID_TAG = "artifactId";
     private final static String VERSION_TAG = "version";
@@ -26,22 +25,12 @@ public class PomFileHandler {
     private Replacements replacementsToApply;
     private Map<Tag, String> propertiesToReplace;
 
-    public boolean handle(Path filePath) {
-        try {
-            log.debug("Process pom.xml : {}", filePath.toString());
+    public boolean handle(Path filePath, String pomXml) throws Exception {
+        String newPomXml = processPom(pomXml);
 
-            byte[] pomContent = Files.readAllBytes(filePath);
-            String pomXml = new String(pomContent);
-
-            String newPomXml = processPom(pomXml);
-
-            if (!Objects.equals(pomXml, newPomXml)) {
-                Files.write(filePath, newPomXml.getBytes());
-                return true;
-            }
-        } catch (Exception e) {
-            log.error("Error while processing pom.xml {}", filePath.toString());
-            log.debug("Error details: ", e);
+        if (!Objects.equals(pomXml, newPomXml)) {
+            Files.write(filePath, newPomXml.getBytes());
+            return true;
         }
         return false;
     }
@@ -74,7 +63,7 @@ public class PomFileHandler {
     }
 
     void collectDependencyReplacementsToApply(String pomXml) throws Exception {
-        VTDNav vn = getVtdNav(pomXml);
+        VTDNav vn = XMLHelper.getVtdNav(pomXml);
 
         processDependenciesXpath(vn, "/project/dependencies/dependency");
         processDependenciesXpath(vn, "/project/dependencyManagement/dependencies/dependency");
@@ -102,14 +91,6 @@ public class PomFileHandler {
         }
     }
 
-    VTDNav getVtdNav(String pomXml) throws ParseException {
-        VTDGen vg = new VTDGen();
-        vg.setDoc(pomXml.getBytes());
-        vg.parse(true);
-
-        return vg.getNav();
-    }
-
     void processDependenciesXpath(VTDNav vn, String xpath) throws Exception {
         AutoPilot ap = new AutoPilot(vn);
         ap.selectXPath(xpath);
@@ -121,7 +102,7 @@ public class PomFileHandler {
             String currentArtifactId = getTagValue(vn, ARTIFACT_ID_TAG);
 
             if (currentGroupId != null && currentArtifactId != null) {
-                Dependency depToReplace = ConfigReader.getConfig().getDependency(currentGroupId, currentArtifactId);
+                DependencyToReplace depToReplace = ConfigReader.getConfig().getDependency(currentGroupId, currentArtifactId);
                 if (depToReplace != null) {
                     Tag groupIdTag = getTagPosition(vn, GROUP_ID_TAG);
                     replacementsToApply.add(groupIdTag, depToReplace.getNewGroupId());

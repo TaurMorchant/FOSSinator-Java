@@ -7,7 +7,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.qubership.fossinator.config.Config;
 import org.qubership.fossinator.config.ConfigReader;
-import org.qubership.fossinator.config.ImportPattern;
+import org.qubership.fossinator.config.model.ImportPattern;
 import org.qubership.fossinator.index.ClassesIndex;
 import org.qubership.fossinator.index.Index;
 

@@ -4,13 +4,13 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.qubership.fossinator.config.Config;
 import org.qubership.fossinator.config.ConfigReader;
-import org.qubership.fossinator.config.Dependency;
+import org.qubership.fossinator.config.model.DependencyToReplace;
 
 import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class PomFileHandlerTest {
+class ReplaceDependenciesPomFileHandlerTest {
 
     @AfterEach
     void tearDown() {
@@ -21,7 +21,7 @@ class PomFileHandlerTest {
     void processPom_hasNotDependenciesToChange() throws Exception {
         Config.JavaConfig javaConfig = new Config.JavaConfig();
         javaConfig.setDependenciesToReplace(new ArrayList<>() {{
-            add(Dependency.builder().build());
+            add(DependencyToReplace.builder().build());
         }});
         Config config = new Config(javaConfig);
 
@@ -46,7 +46,7 @@ class PomFileHandlerTest {
     void processPom_hasDependenciesToChange() throws Exception {
         Config.JavaConfig javaConfig = new Config.JavaConfig();
         javaConfig.setDependenciesToReplace(new ArrayList<>() {{
-            add(Dependency.builder()
+            add(DependencyToReplace.builder()
                     .oldGroupId("org.foo")
                     .oldArtifactId("artifact1")
                     .newGroupId("org.bar")
@@ -89,7 +89,7 @@ class PomFileHandlerTest {
     void processPom_hasDependenciesToChange_withoutVersion() throws Exception {
         Config.JavaConfig javaConfig = new Config.JavaConfig();
         javaConfig.setDependenciesToReplace(new ArrayList<>() {{
-            add(Dependency.builder()
+            add(DependencyToReplace.builder()
                     .oldGroupId("org.foo")
                     .oldArtifactId("artifact1")
                     .newGroupId("org.bar")
@@ -130,7 +130,7 @@ class PomFileHandlerTest {
     void processPom_hasDependenciesToChange_artifactWildcard() throws Exception {
         Config.JavaConfig javaConfig = new Config.JavaConfig();
         javaConfig.setDependenciesToReplace(new ArrayList<>() {{
-            add(Dependency.builder()
+            add(DependencyToReplace.builder()
                     .oldGroupId("org.foo")
                     .oldArtifactId("*")
                     .newGroupId("org.bar")
@@ -170,14 +170,14 @@ class PomFileHandlerTest {
     void processPom_hasDependenciesToChange_severalDependencies() throws Exception {
         Config.JavaConfig javaConfig = new Config.JavaConfig();
         javaConfig.setDependenciesToReplace(new ArrayList<>() {{
-            add(Dependency.builder()
+            add(DependencyToReplace.builder()
                     .oldGroupId("org.foo1")
                     .oldArtifactId("artifact1")
                     .newGroupId("org.bar1")
                     .newArtifactId("artifact2")
                     .newVersion("6.6.6")
                     .build());
-            add(Dependency.builder()
+            add(DependencyToReplace.builder()
                     .oldGroupId("org.foo2")
                     .oldArtifactId("artifact3")
                     .newGroupId("org.bar2")
@@ -230,14 +230,14 @@ class PomFileHandlerTest {
     void processPom_hasDependencyManagementToChange() throws Exception {
         Config.JavaConfig javaConfig = new Config.JavaConfig();
         javaConfig.setDependenciesToReplace(new ArrayList<>() {{
-            add(Dependency.builder()
+            add(DependencyToReplace.builder()
                     .oldGroupId("org.foo1")
                     .oldArtifactId("artifact1")
                     .newGroupId("org.bar1")
                     .newArtifactId("artifact2")
                     .newVersion("6.6.6")
                     .build());
-            add(Dependency.builder()
+            add(DependencyToReplace.builder()
                     .oldGroupId("org.foo2")
                     .oldArtifactId("artifact3")
                     .newGroupId("org.bar2")
@@ -294,7 +294,7 @@ class PomFileHandlerTest {
     void processPom_hasDependenciesToChange_versionInProperties() throws Exception {
         Config.JavaConfig javaConfig = new Config.JavaConfig();
         javaConfig.setDependenciesToReplace(new ArrayList<>() {{
-            add(Dependency.builder()
+            add(DependencyToReplace.builder()
                     .oldGroupId("org.foo")
                     .oldArtifactId("artifact1")
                     .newGroupId("org.bar")
@@ -343,7 +343,7 @@ class PomFileHandlerTest {
     void processPom_hasDependenciesToChange_versionInParentProperties() throws Exception {
         Config.JavaConfig javaConfig = new Config.JavaConfig();
         javaConfig.setDependenciesToReplace(new ArrayList<>() {{
-            add(Dependency.builder()
+            add(DependencyToReplace.builder()
                     .oldGroupId("org.foo")
                     .oldArtifactId("artifact1")
                     .newGroupId("org.bar")
@@ -384,7 +384,7 @@ class PomFileHandlerTest {
 
     private void generalTest(String input, String expected) throws Exception {
 
-        PomFileHandler handler = new PomFileHandler();
+        ReplaceDependenciesPomFileHandler handler = new ReplaceDependenciesPomFileHandler();
 
         String actual = handler.processPom(input);
 
