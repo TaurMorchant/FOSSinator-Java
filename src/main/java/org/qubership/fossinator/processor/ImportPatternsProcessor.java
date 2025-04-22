@@ -1,5 +1,6 @@
 package org.qubership.fossinator.processor;
 
+import com.github.javaparser.ParserConfiguration;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.ImportDeclaration;
@@ -44,10 +45,15 @@ public class ImportPatternsProcessor extends WalkThroughFilesProcessor {
             }
         } catch (Exception e) {
             log.warn("Cannot parse file: {}", filePath);
+            log.debug("Details: ", e);
         }
     }
 
     CompilationUnit getCompilationUnit(Path filePath) throws IOException {
+        StaticJavaParser.setConfiguration(
+                new ParserConfiguration()
+                        .setLanguageLevel(ParserConfiguration.LanguageLevel.JAVA_21)
+        );
         CompilationUnit compilationUnit = StaticJavaParser.parse(filePath);
         LexicalPreservingPrinter.setup(compilationUnit);
 

@@ -1,7 +1,5 @@
 package org.qubership.fossinator.cli;
 
-import com.github.javaparser.ParserConfiguration;
-import com.github.javaparser.StaticJavaParser;
 import lombok.extern.slf4j.Slf4j;
 import org.qubership.fossinator.processor.Processor;
 import picocli.CommandLine;
@@ -14,11 +12,6 @@ class TransformCommand extends AbstractCommand {
 
     @Override
     protected void runCommand() {
-        StaticJavaParser.setConfiguration(
-                new ParserConfiguration()
-                        .setLanguageLevel(ParserConfiguration.LanguageLevel.JAVA_21)
-        );
-
         ServiceLoader<Processor> processors = ServiceLoader.load(Processor.class);
         for (Processor processor : processors) {
             if (processor.shouldBeExecuted()) {

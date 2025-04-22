@@ -115,7 +115,9 @@ public class ReplaceDependenciesPomFileHandler {
                     Tag versionTag = getTagPosition(vn, VERSION_TAG);
                     if (versionTag != null) {
                         if (versionTag.isProperty()) {
-                            propertiesToReplace.put(versionTag, depToReplace.getNewVersion());
+                            if (isPropertyNotAddedYet(versionTag)) {
+                                propertiesToReplace.put(versionTag, depToReplace.getNewVersion());
+                            }
                         } else {
                             replacementsToApply.add(versionTag, depToReplace.getNewVersion());
                         }
@@ -125,6 +127,13 @@ public class ReplaceDependenciesPomFileHandler {
 
             vn.pop();
         }
+    }
+
+    private boolean isPropertyNotAddedYet(Tag versionTag) {
+        return propertiesToReplace
+                .keySet()
+                .stream()
+                .noneMatch(tag -> Objects.equals(versionTag.value(), tag.value()));
     }
 
     String getTagValue(VTDNav vn, String tagName) throws Exception {

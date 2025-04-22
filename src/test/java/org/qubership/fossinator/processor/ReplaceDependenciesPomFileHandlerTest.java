@@ -382,6 +382,75 @@ class ReplaceDependenciesPomFileHandlerTest {
         generalTest(input, expected);
     }
 
+    @Test
+    void processPom_hasDependenciesToChange_propertyAppearsMultipleTimes() throws Exception {
+        Config.JavaConfig javaConfig = new Config.JavaConfig();
+        javaConfig.setDependenciesToReplace(new ArrayList<>() {{
+            add(DependencyToReplace.builder()
+                    .oldGroupId("org.foo")
+                    .oldArtifactId("artifact1")
+                    .newGroupId("org.bar")
+                    .newArtifactId("artifact2")
+                    .newVersion("6.6.6-SNAPSHOT")
+                    .build());
+        }});
+        Config config = new Config(javaConfig);
+
+        ConfigReader.setConfig(config);
+
+        String input = """
+                <project xmlns="http://maven.apache.org/POM/4.0.0">
+                    <properties>
+                        <artifact.version>1.1.1</artifact.version>
+                    </properties>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.foo</groupId>
+                            <artifactId>artifact1</artifactId>
+                            <version>${artifact.version}</version>
+                        </dependency>
+                        <dependency>
+                            <groupId>org.foo</groupId>
+                            <artifactId>artifact1</artifactId>
+                            <version>${artifact.version}</version>
+                        </dependency>
+                        <dependency>
+                            <groupId>org.foo</groupId>
+                            <artifactId>artifact1</artifactId>
+                            <version>${artifact.version}</version>
+                        </dependency>
+                   </dependencies>
+                </project>
+                """;
+
+        String expected = """
+                <project xmlns="http://maven.apache.org/POM/4.0.0">
+                    <properties>
+                        <artifact.version>6.6.6-SNAPSHOT</artifact.version>
+                    </properties>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.bar</groupId>
+                            <artifactId>artifact2</artifactId>
+                            <version>${artifact.version}</version>
+                        </dependency>
+                        <dependency>
+                            <groupId>org.bar</groupId>
+                            <artifactId>artifact2</artifactId>
+                            <version>${artifact.version}</version>
+                        </dependency>
+                        <dependency>
+                            <groupId>org.bar</groupId>
+                            <artifactId>artifact2</artifactId>
+                            <version>${artifact.version}</version>
+                        </dependency>
+                   </dependencies>
+                </project>
+                """;
+
+        generalTest(input, expected);
+    }
+
     private void generalTest(String input, String expected) throws Exception {
 
         ReplaceDependenciesPomFileHandler handler = new ReplaceDependenciesPomFileHandler();
