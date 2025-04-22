@@ -5,11 +5,13 @@ import java.util.ArrayList;
 public class Replacements extends ArrayList<Replacement> {
     public void add(Tag tag, String newValue) {
         if (tag != null) {
-            add(new Replacement(
+            Replacement replacement = new Replacement(
                     tag.offset(),
                     tag.length(),
-                    newValue
-            ));
+                    newValue);
+            if (!contains(replacement)) {
+                add(replacement);
+            }
         }
     }
 }

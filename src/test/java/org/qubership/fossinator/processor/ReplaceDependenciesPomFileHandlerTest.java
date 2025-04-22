@@ -383,6 +383,59 @@ class ReplaceDependenciesPomFileHandlerTest {
     }
 
     @Test
+    void processPom_hasDependenciesToChange_versionInParentProperties_severalSamePlaceholders() throws Exception {
+        Config.JavaConfig javaConfig = new Config.JavaConfig();
+        javaConfig.setDependenciesToReplace(new ArrayList<>() {{
+            add(DependencyToReplace.builder()
+                    .oldGroupId("org.foo")
+                    .oldArtifactId("artifact1")
+                    .newGroupId("org.bar")
+                    .newArtifactId("artifact2")
+                    .newVersion("6.6.6")
+                    .build());
+        }});
+        Config config = new Config(javaConfig);
+
+        ConfigReader.setConfig(config);
+
+        String input = """
+                <project xmlns="http://maven.apache.org/POM/4.0.0">
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.foo</groupId>
+                            <artifactId>artifact1</artifactId>
+                            <version>${artifact.version}</version>
+                        </dependency>
+                        <dependency>
+                            <groupId>org.foo</groupId>
+                            <artifactId>artifact1</artifactId>
+                            <version>${artifact.version}</version>
+                        </dependency>
+                   </dependencies>
+                </project>
+                """;
+
+        String expected = """
+                <project xmlns="http://maven.apache.org/POM/4.0.0">
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.bar</groupId>
+                            <artifactId>artifact2</artifactId>
+                            <version>6.6.6</version>
+                        </dependency>
+                        <dependency>
+                            <groupId>org.bar</groupId>
+                            <artifactId>artifact2</artifactId>
+                            <version>6.6.6</version>
+                        </dependency>
+                   </dependencies>
+                </project>
+                """;
+
+        generalTest(input, expected);
+    }
+
+    @Test
     void processPom_hasDependenciesToChange_propertyAppearsMultipleTimes() throws Exception {
         Config.JavaConfig javaConfig = new Config.JavaConfig();
         javaConfig.setDependenciesToReplace(new ArrayList<>() {{
