@@ -373,7 +373,7 @@ class ReplaceDependenciesPomFileHandlerTest {
                         <dependency>
                             <groupId>org.bar</groupId>
                             <artifactId>artifact2</artifactId>
-                            <version>6.6.6</version>
+                            <version>6.6.6<!--This version was coming from a property 'artifact.version' — please replace the property value manually--></version>
                         </dependency>
                    </dependencies>
                 </project>
@@ -421,12 +421,12 @@ class ReplaceDependenciesPomFileHandlerTest {
                         <dependency>
                             <groupId>org.bar</groupId>
                             <artifactId>artifact2</artifactId>
-                            <version>6.6.6</version>
+                            <version>6.6.6<!--This version was coming from a property 'artifact.version' — please replace the property value manually--></version>
                         </dependency>
                         <dependency>
                             <groupId>org.bar</groupId>
                             <artifactId>artifact2</artifactId>
-                            <version>6.6.6</version>
+                            <version>6.6.6<!--This version was coming from a property 'artifact.version' — please replace the property value manually--></version>
                         </dependency>
                    </dependencies>
                 </project>

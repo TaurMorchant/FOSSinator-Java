@@ -12,6 +12,7 @@ import org.qubership.fossinator.xml.XMLHelper;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -85,7 +86,11 @@ public class ReplaceDependenciesPomFileHandler {
                     log.warn("Looks like property {} specified in parent pom. Cannot change property value. " +
                              "Property placeholder will be replaced by static value instead: {}",
                             entry.getKey().getPropertyName(), entry.getValue());
-                    replacementsToApply.add(entry.getKey(), entry.getValue());
+
+                    String valueToReplace = MessageFormat.format(
+                            "{0}<!--This version was coming from a property ''{1}'' — please replace the property value manually-->",
+                            entry.getValue(), entry.getKey().getPropertyName());
+                    replacementsToApply.add(entry.getKey(), valueToReplace);
                 }
             }
         }
