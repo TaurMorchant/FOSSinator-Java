@@ -31,14 +31,16 @@ public class DependenciesValidator {
 
     private boolean isFailed = false;
 
-    public void validateDependencies(String dir) throws Exception {
+    public void validateDependencies(String dir, String branch) throws Exception {
         long startTime = System.currentTimeMillis();
 
         File projectDir = new File(dir);
 
         Process process = startMvnProcess(projectDir);
 
-        File outputFile = new File(projectDir, "dependency-tree-checked.txt");
+        String fileName = "dependency-tree-checked" + getFilePostfix(branch) + ".txt";
+
+        File outputFile = new File(projectDir, fileName);
 
         boolean updated = false;
 
@@ -108,6 +110,15 @@ public class DependenciesValidator {
         if (matcher.matches()) {
             isFailed = true;
             log.debug("mvn output: {}", line);
+        }
+    }
+
+    private String getFilePostfix(String branch) {
+        if (branch.isEmpty()) {
+            return "";
+        }
+        else {
+            return "-" + branch;
         }
     }
 }

@@ -22,6 +22,7 @@ public class ReplaceDependenciesPomFileHandler {
     private final static String GROUP_ID_TAG = "groupId";
     private final static String ARTIFACT_ID_TAG = "artifactId";
     private final static String VERSION_TAG = "version";
+    private final static String PROJECT_VERSION_PROPERTY = "project.version";
 
     private Replacements replacementsToApply;
     private Map<Tag, String> propertiesToReplace;
@@ -68,6 +69,7 @@ public class ReplaceDependenciesPomFileHandler {
 
         processDependenciesXpath(vn, "/project/dependencies/dependency");
         processDependenciesXpath(vn, "/project/dependencyManagement/dependencies/dependency");
+        processDependenciesXpath(vn, "/project/build/plugins/plugin/dependencies/dependency");
 
         if (!propertiesToReplace.isEmpty()) {
             for (Map.Entry<Tag, String> entry : propertiesToReplace.entrySet()) {
@@ -105,10 +107,17 @@ public class ReplaceDependenciesPomFileHandler {
 
             String currentGroupId = getTagValue(vn, GROUP_ID_TAG);
             String currentArtifactId = getTagValue(vn, ARTIFACT_ID_TAG);
+            String currentVersion = getTagValue(vn, VERSION_TAG);
 
             if (currentGroupId != null && currentArtifactId != null) {
                 DependencyToReplace depToReplace = ConfigReader.getConfig().getDependency(currentGroupId, currentArtifactId);
                 if (depToReplace != null) {
+                    if (Objects.equals(currentGroupId, depToReplace.getNewGroupId()) &&
+                            Objects.equals(currentArtifactId, depToReplace.getNewArtifactId()) &&
+                            Objects.equals(currentVersion, depToReplace.getNewVersion())) {
+                        //do nothing
+                        continue;
+                    }
                     Tag groupIdTag = getTagPosition(vn, GROUP_ID_TAG);
                     replacementsToApply.add(groupIdTag, depToReplace.getNewGroupId());
 
@@ -120,7 +129,12 @@ public class ReplaceDependenciesPomFileHandler {
                     Tag versionTag = getTagPosition(vn, VERSION_TAG);
                     if (versionTag != null) {
                         if (versionTag.isProperty()) {
-                            propertiesToReplace.put(versionTag, depToReplace.getNewVersion());
+                            if (PROJECT_VERSION_PROPERTY.equals(versionTag.getPropertyName())) {
+                                //do nothing
+                            }
+                            else {
+                                propertiesToReplace.put(versionTag, depToReplace.getNewVersion());
+                            }
                         } else {
                             replacementsToApply.add(versionTag, depToReplace.getNewVersion());
                         }
