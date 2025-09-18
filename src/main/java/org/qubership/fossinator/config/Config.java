@@ -10,6 +10,7 @@ import org.qubership.fossinator.config.model.DependencyToReplace;
 import org.qubership.fossinator.config.model.Import;
 import org.qubership.fossinator.config.model.ImportPattern;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -27,19 +28,19 @@ public class Config {
     public static class JavaConfig {
         @JsonSetter(nulls = Nulls.AS_EMPTY)
         @JsonProperty("imports-to-replace")
-        private List<Import> importsToReplace;
+        private List<Import> importsToReplace = new ArrayList<>();
 
         @JsonSetter(nulls = Nulls.AS_EMPTY)
         @JsonProperty("imports-to-replace-by-pattern")
-        private List<ImportPattern> importsToReplaceByPattern;
+        private List<ImportPattern> importsToReplaceByPattern = new ArrayList<>();
 
         @JsonSetter(nulls = Nulls.AS_EMPTY)
         @JsonProperty("dependencies-to-replace")
-        private List<DependencyToReplace> dependenciesToReplace;
+        private List<DependencyToReplace> dependenciesToReplace = new ArrayList<>();
 
         @JsonSetter(nulls = Nulls.AS_EMPTY)
         @JsonProperty("dependencies-to-add")
-        private List<DependencyToAdd> dependenciesToAdd;
+        private List<DependencyToAdd> dependenciesToAdd = new ArrayList<>();
 
         public DependencyToReplace getDependency(String groupId, String artifactId) {
             for (DependencyToReplace dep : dependenciesToReplace) {

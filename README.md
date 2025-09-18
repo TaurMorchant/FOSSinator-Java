@@ -14,7 +14,7 @@
    ```
 4. Run either the `transform` or `validate` commands
     ```bash
-    java -jar fosssinator-java-1.0.0.jar transform -v -c -d=<your dir>   
+    java -jar fossinator-java-1.0.0.jar transform -v -c -d=<your dir>   
     ```
 
 ---
