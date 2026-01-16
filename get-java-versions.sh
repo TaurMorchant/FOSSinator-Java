@@ -5,26 +5,29 @@ set -euo pipefail
 # Config: repositories (GitHub URLs)
 # ---------------------------------
 REPOS=(
+  "https://github.com/Netcracker/qubership-core-blue-green-state-monitor"
+  "https://github.com/Netcracker/qubership-core-blue-green-state-monitor-quarkus"
+  "https://github.com/Netcracker/qubership-core-context-propagation"
+  "https://github.com/Netcracker/qubership-core-context-propagation-quarkus"
+  "https://github.com/Netcracker/qubership-core-error-handling"
+  "https://github.com/Netcracker/qubership-core-junit-k8s-extension"
+  "https://github.com/Netcracker/qubership-core-microservice-dependencies"
+  "https://github.com/Netcracker/qubership-core-microservice-framework"
+  "https://github.com/Netcracker/qubership-core-microservice-framework-extensions"
+  "https://github.com/Netcracker/qubership-core-mongo-evolution"
+  "https://github.com/Netcracker/qubership-core-process-orchestrator"
+  "https://github.com/Netcracker/qubership-core-quarkus-extensions"
+  "https://github.com/Netcracker/qubership-core-rest-libraries"
+  "https://github.com/Netcracker/qubership-core-restclient"
+  "https://github.com/Netcracker/qubership-core-springboot-starter"
+  "https://github.com/Netcracker/qubership-core-utils"
+  "https://github.com/Netcracker/qubership-dbaas-client"
   "https://github.com/Netcracker/qubership-maas-client"
+  "https://github.com/Netcracker/qubership-maas-client-quarkus"
   "https://github.com/Netcracker/qubership-maas-client-spring"
   "https://github.com/Netcracker/qubership-maas-declarative-client-commons"
   "https://github.com/Netcracker/qubership-maas-declarative-client-quarkus"
-  "https://github.com/Netcracker/qubership-core-blue-green-state-monitor-quarkus"
-  "https://github.com/Netcracker/qubership-core-quarkus-extensions"
-  "https://github.com/Netcracker/qubership-core-context-propagation-quarkus"
-  "https://github.com/Netcracker/qubership-maas-client-quarkus"
-  "https://github.com/Netcracker/qubership-core-utils"
-  "https://github.com/Netcracker/qubership-core-blue-green-state-monitor"
-  "https://github.com/Netcracker/qubership-dbaas-client"
-  "https://github.com/Netcracker/qubership-core-microservice-dependencies"
-  "https://github.com/Netcracker/qubership-core-rest-libraries"
-  "https://github.com/Netcracker/qubership-core-context-propagation"
-  "https://github.com/Netcracker/qubership-core-error-handling"
-  "https://github.com/Netcracker/qubership-core-microservice-framework-extensions"
-  "https://github.com/Netcracker/qubership-core-microservice-framework"
-  "https://github.com/Netcracker/qubership-core-restclient"
-  "https://github.com/Netcracker/qubership-core-mongo-evolution"
-  "https://github.com/Netcracker/qubership-core-process-orchestrator"
+  "https://github.com/Netcracker/qubership-maas-declarative-client-spring"
 )
 
 # ---------------------------------
@@ -83,16 +86,34 @@ get_latest_semver_tag() {
     }' \
   | sort -u \
   | grep -E '^v?[0-9]+\.[0-9]+\.[0-9]+([-.+][0-9A-Za-z.-]+)?$' \
-  | sort -V \
-  | tail -n 1
+  | awk '{
+      tag = $0
+      normalized = tag
+      sub(/^v/, "", normalized)
+      print normalized "\t" tag
+    }' \
+  | sort -V -k1,1 \
+  | tail -n 1 \
+  | cut -f2
 }
 
 # Extract root groupId/version with fallback to <parent>; print "group|version"
 get_root_coord() {
   local pom="$1"
   local group version
-  group="$(xmlstarlet sel -N "$NS" -t -v '(/x:project/x:groupId|/x:project/x:parent/x:groupId)[1]' "$pom")"
-  version="$(xmlstarlet sel -N "$NS" -t -v '(/x:project/x:version|/x:project/x:parent/x:version)[1]' "$pom")"
+
+  # Try direct groupId first, fallback to parent if empty
+  group="$(xmlstarlet sel -N "$NS" -t -v '/x:project/x:groupId' "$pom" 2>/dev/null || true)"
+  if [[ -z "${group:-}" ]]; then
+    group="$(xmlstarlet sel -N "$NS" -t -v '/x:project/x:parent/x:groupId' "$pom" 2>/dev/null || true)"
+  fi
+
+  # Try direct version first, fallback to parent if empty
+  version="$(xmlstarlet sel -N "$NS" -t -v '/x:project/x:version' "$pom" 2>/dev/null || true)"
+  if [[ -z "${version:-}" ]]; then
+    version="$(xmlstarlet sel -N "$NS" -t -v '/x:project/x:parent/x:version' "$pom" 2>/dev/null || true)"
+  fi
+
   echo "${group}|${version}"
 }
 
