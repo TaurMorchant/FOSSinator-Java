@@ -6,15 +6,13 @@ import org.qubership.fossinator.config.Config;
 import org.qubership.fossinator.config.ConfigReader;
 import org.qubership.fossinator.config.model.Dependency;
 import org.qubership.fossinator.config.model.DependencyToAdd;
-import org.qubership.fossinator.config.model.DependencyToReplace;
 
-import java.io.File;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class AddDependenciesPomProcessorTest {
 
@@ -74,6 +72,76 @@ class AddDependenciesPomProcessorTest {
                 \t\t\t<scope>provided</scope>
                 \t\t</dependency>
                 \t</dependencies>
+                </project>
+                """;
+
+        Path filePath = Files.createTempFile("pom", "xml");
+
+        AddDependenciesPomProcessor processor = new AddDependenciesPomProcessor();
+
+        boolean updated = processor.processPom(filePath, input);
+
+        String actual = Files.readString(filePath);
+
+        assertTrue(updated);
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    void processPom_hasDependencyToReplaceWithDependencyManagement() throws Exception {
+        Config.JavaConfig javaConfig = new Config.JavaConfig();
+        javaConfig.setDependenciesToAdd(new ArrayList<>() {{
+            add(DependencyToAdd.builder()
+                    .ifDependencyExists(
+                            Dependency.builder()
+                                    .groupId("org.slf4j")
+                                    .artifactId("slf4j-api")
+                                    .build()
+                    )
+                    .addDependency(
+                            Dependency.builder()
+                                    .groupId("org.apache.commons")
+                                    .artifactId("commons-lang3")
+                                    .version("3.14.0")
+                                    .scope("provided")
+                                    .build()
+                    ).build()
+            );
+        }});
+        Config config = new Config(javaConfig);
+        ConfigReader.setConfig(config);
+
+        String input = """
+                <project xmlns="http://maven.apache.org/POM/4.0.0">
+                \t<dependencyManagement>
+                \t\t<dependencies>
+                \t\t\t<dependency>
+                \t\t\t\t<groupId>org.slf4j</groupId>
+                \t\t\t\t<artifactId>slf4j-api</artifactId>
+                \t\t\t\t<version>1.7.6</version>
+                \t\t\t</dependency>
+                \t\t</dependencies>
+                \t</dependencyManagement>
+                </project>
+                """;
+
+        String expected = """
+                <project xmlns="http://maven.apache.org/POM/4.0.0">
+                \t<dependencyManagement>
+                \t\t<dependencies>
+                \t\t\t<dependency>
+                \t\t\t\t<groupId>org.slf4j</groupId>
+                \t\t\t\t<artifactId>slf4j-api</artifactId>
+                \t\t\t\t<version>1.7.6</version>
+                \t\t\t</dependency>
+                \t\t\t<dependency>
+                \t\t\t\t<groupId>org.apache.commons</groupId>
+                \t\t\t\t<artifactId>commons-lang3</artifactId>
+                \t\t\t\t<version>3.14.0</version>
+                \t\t\t\t<scope>provided</scope>
+                \t\t\t</dependency>
+                \t\t</dependencies>
+                \t</dependencyManagement>
                 </project>
                 """;
 

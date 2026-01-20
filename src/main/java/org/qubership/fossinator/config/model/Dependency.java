@@ -17,4 +17,6 @@ public class Dependency {
     private String version;
 
     private String scope;
+
+    private String type;
 }

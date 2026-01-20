@@ -1,8 +1,6 @@
 package org.qubership.fossinator.processor;
 
-import com.ximpleware.AutoPilot;
-import com.ximpleware.VTDNav;
-import com.ximpleware.XMLModifier;
+import com.ximpleware.*;
 import lombok.extern.slf4j.Slf4j;
 import org.qubership.fossinator.config.ConfigReader;
 import org.qubership.fossinator.config.model.Dependency;
@@ -16,7 +14,8 @@ import static org.qubership.fossinator.Constants.POM_FILE_NAME;
 
 @Slf4j
 public class AddDependenciesPomProcessor extends AbstractPomFileProcessor {
-    private final static String GET_DEPENDENCY_XPATH_PATTERN = "/project/dependencies/dependency[groupId=''{0}'' and artifactId=''{1}'']";
+    private static final  String GET_DEPENDENCY_XPATH_PATTERN = "/project/dependencies/dependency[groupId=''{0}'' and artifactId=''{1}'']";
+    private static final  String GET_DEPENDENCY_IN_DMANAGEMENT_XPATH_PATTERN = "/project/dependencyManagement/dependencies/dependency[groupId=''{0}'' and artifactId=''{1}'']";
 
     @Override
     public boolean shouldBeExecuted() {
@@ -24,7 +23,7 @@ public class AddDependenciesPomProcessor extends AbstractPomFileProcessor {
     }
 
     @Override
-    public String getFileSuffix(){
+    public String getFileSuffix() {
         return POM_FILE_NAME;
     }
 
@@ -37,12 +36,18 @@ public class AddDependenciesPomProcessor extends AbstractPomFileProcessor {
         boolean updated = false;
         for (DependencyToAdd dependencyToAdd : ConfigReader.getConfig().getDependenciesToAdd()) {
             Dependency checkedDependency =  dependencyToAdd.getIfDependencyExists();
-            String xpath = MessageFormat.format(GET_DEPENDENCY_XPATH_PATTERN, checkedDependency.getGroupId(), checkedDependency.getArtifactId());
-            ap.selectXPath(xpath);
+            lookForDependencyBy(GET_DEPENDENCY_XPATH_PATTERN, checkedDependency, ap);
+            int result = ap.evalXPath();
+            boolean isDMExist = false;
+            if (result == -1) {
+                lookForDependencyBy(GET_DEPENDENCY_IN_DMANAGEMENT_XPATH_PATTERN, checkedDependency, ap);
+                result = ap.evalXPath();
+                isDMExist = true;
+            }
 
-            if (ap.evalXPath() != -1) {
+            if (result != -1) {
 
-                String newDependencyXml = getNewDependencyXml(dependencyToAdd.getAddDependency());
+                String newDependencyXml = getNewDependencyXml(dependencyToAdd.getAddDependency(), isDMExist);
 
                 xm.insertAfterElement(newDependencyXml);
 
@@ -57,17 +62,26 @@ public class AddDependenciesPomProcessor extends AbstractPomFileProcessor {
         return updated;
     }
 
-    String getNewDependencyXml(Dependency dependency) {
-        StringBuilder result = new StringBuilder("\n\t\t<dependency>\n");
-        result.append("\t\t\t<groupId>").append(dependency.getGroupId()).append("</groupId>\n");
-        result.append("\t\t\t<artifactId>").append(dependency.getArtifactId()).append("</artifactId>\n");
+    private void lookForDependencyBy(String getDependencyXpathPattern, Dependency checkedDependency, AutoPilot ap) throws XPathParseException {
+        String xpath = MessageFormat.format(getDependencyXpathPattern, checkedDependency.getGroupId(), checkedDependency.getArtifactId());
+        ap.selectXPath(xpath);
+    }
+
+    String getNewDependencyXml(Dependency dependency, boolean isDMExist) {
+        String tabs = isDMExist ? "\t\t\t\t" : "\t\t\t";
+        StringBuilder result = new StringBuilder((isDMExist ? "\n\t\t\t" : "\n\t\t") + "<dependency>\n");
+        result.append(tabs).append("<groupId>").append(dependency.getGroupId()).append("</groupId>\n");
+        result.append(tabs).append("<artifactId>").append(dependency.getArtifactId()).append("</artifactId>\n");
         if (dependency.getVersion() != null) {
-            result.append("\t\t\t<version>").append(dependency.getVersion()).append("</version>\n");
+            result.append(tabs).append("<version>").append(dependency.getVersion()).append("</version>\n");
+        }
+        if (dependency.getType() != null) {
+            result.append(tabs).append("<type>").append(dependency.getType()).append("</type>\n");
         }
         if (dependency.getScope() != null) {
-            result.append("\t\t\t<scope>").append(dependency.getScope()).append("</scope>\n");
+            result.append(tabs).append("<scope>").append(dependency.getScope()).append("</scope>\n");
         }
-        result.append("\t\t</dependency>");
+        result.append(isDMExist ? "\t\t\t" : "\t\t").append("</dependency>");
         return result.toString();
     }
 }
